@@ -1,7 +1,7 @@
 # AppDynamics PostgreSQL - Monitoring Extension
 
 * [Use Case](postgre.md#use-case)
-* [Installation](postgre.md#installation)
+* [Installation](README.md#installation)
 * [Metrics](postgresql-monitoring-extension.md#metrics)
 * [Contributing](nagios-readme.md#contributing)
 
