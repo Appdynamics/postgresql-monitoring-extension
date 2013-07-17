@@ -2,7 +2,7 @@
 
 * [Use Case](postgre.md#use-case)
 * [Installation](postgre.md#installation)
-* [Metrics](postgre.md#metrics)
+* [Metrics](postgresql-monitoring-extension.md#metrics)
 * [Contributing](nagios-readme.md#contributing)
 
 ##Use Case
