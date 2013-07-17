@@ -1,4 +1,4 @@
-# AppDynamics PostgreSQL Monitoring Extension
+# AppDynamics PostgreSQL - Monitoring Extension
 
 * [Use Case](postgre.md#use-case)
 * [Installation](postgre.md#installation)
