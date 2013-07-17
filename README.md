@@ -1,4 +1,4 @@
-# AppDynamics PostgreSQL - Monitoring Extension
+# AppDynamics PostgreSQL Database - Monitoring Extension
 
 ##Use Case
 PostgreSQL is an open source object-relational database system.
