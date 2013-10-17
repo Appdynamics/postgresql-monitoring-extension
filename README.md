@@ -33,7 +33,7 @@ wait before timing out.
   d. Change the default-value of "port" under \<monitor-run-task\>\<task-arguments\> if PostgreSQL is not at port 5432.  
   e. Change the default-value of the username under \<monitor-run-task\>\<task-arguments\> if the default user is not "postgres".  
   f. Change the default-value of the password under <monitor-run-task\>\<task-arguments\> if the default password is not "welcome".  
-  g. (OPTIONAL) Change the default-value of the tier under \<monitor-run-task\>\<task-arguments\> if you want this metric to appear under a specific tier. Otherwise the metrics will be registered in every tier. 
+  g. (OPTIONAL) Change the default-value of the tier under \<monitor-run-task\>\<task-arguments\> if you want this metric to appear under a specific tier. Otherwise the metrics will be registered in every tier.  
   h. Change the default-value of "columns" under \<monitor-run-task\>\<task-arguments\> if all the metrics specified above are not required.  
   i. Change the refresh-intervale under \<monitor-run-task\>\<task-arguments\> if the default value of 300 seconds is not required. This determines the duration of time before querying for new data from the database.
 3. Restart the Machine Agent
