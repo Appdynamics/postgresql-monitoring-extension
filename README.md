@@ -19,6 +19,7 @@ Metrics include:
 1. Run ant package. Deploy the PostgreSQLMonitor.zip file found in 'dist' into the <machine agent home>/monitors directory.
 
 > cd <machine agent home>/monitors/
+
 > unzip PostgreSQLMonitor.zip
 
 3. Edit the monitor.xml and update:
