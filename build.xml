@@ -1,0 +1,34 @@
+<project default="build">
+    <property name="build.dir" value="dist" />
+    <property name="conf.dir" value="conf" />
+    <property name="project.name" value="PostgreSQLMonitor"/>
+    <property name="machine.agent.jar" value="lib/machineagent/machineagent.jar"/>
+    <property name="postgresql.jar" value="lib/postgresql/postgresql-8.4-701.jdbc3.jar"/>
+    <property name="log.jar" value="lib/log4j/log4j-1.2.15.jar"/>
+    <path id="cp">
+        <pathelement location="${machine.agent.jar}"/>
+        <pathelement location="${log.jar}"/>
+    </path>
+
+    <target name="build">
+        <mkdir dir="${build.dir}/classes"/>
+        <javac destdir="${build.dir}/classes" srcdir="src/main/java" classpathref="cp" debug="on" source="1.5" target="1.5"/>
+        <mkdir dir="${build.dir}/PostgreSQLMonitor"/>
+        <jar destfile="${build.dir}/PostgreSQLMonitor/${project.name}.jar">
+            <fileset dir="${build.dir}/classes"/>
+        </jar>
+        <copy todir="${build.dir}/PostgreSQLMonitor">
+            <fileset dir="${conf.dir}" includes="monitor.xml"/>
+        </copy>
+        <delete dir="${build.dir}/classes"/>
+    </target>
+    <target name="package" depends="build">
+        <zip destfile="${build.dir}/PostgreSQLMonitor.zip">
+            <zipfileset dir="${build.dir}/PostgreSQLMonitor" filemode="755" prefix="PostgreSQLMonitor/"/>
+        </zip>
+        <delete dir="${build.dir}/PostGreSQLMonitor"/>
+    </target>
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+    </target>
+</project>
