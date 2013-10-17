@@ -23,18 +23,19 @@ $ cd <machine agent home>/monitors/
 $ unzip PostgreSQLMonitor.zip
 ```
 2. Edit the monitor.xml and update:
- a. Change \<execution-frequency-in-seconds\> if the default value of 60 seconds is not required. This defines how often the monitor should
+
+  a. Change \<execution-frequency-in-seconds\> if the default value of 60 seconds is not required. This defines how often the monitor should
 execute and collect metrics.  
- b. Change \<execution-timeout-in-secs\> if the default value of 60 seconds is not required. This defines how long the application should
+  b. Change \<execution-timeout-in-secs\> if the default value of 60 seconds is not required. This defines how long the application should
 wait before timing out.
- c. Change the default-value of "host" under \<monitor-run-task\>\<task-arguments\> if PostgreSQL is not at
+  c. Change the default-value of "host" under \<monitor-run-task\>\<task-arguments\> if PostgreSQL is not at
 "localhost". 
- d. Change the default-value of "port" under \<monitor-run-task\>\<task-arguments\> if PostgreSQL is not at port 5432.  
- e. Change the default-value of the username under \<monitor-run-task\>\<task-arguments\> if the default user is not "postgres".  
- f. Change the default-value of the password under <monitor-run-task\>\<task-arguments\> if the default password is not "welcome".  
- g. (OPTIONAL) Change the default-value of the tier under \<monitor-run-task\>\<task-arguments\> if you want this metric to appear under a specific tier. Otherwise the metrics will be registered in every tier. 
- h. Change the default-value of "columns" under \<monitor-run-task\>\<task-arguments\> if all the metrics specified above are not required.  
- i. Change the refresh-intervale under \<monitor-run-task\>\<task-arguments\> if the default value of 300 seconds is not required. This determines the duration of time before querying for new data from the database.
+  d. Change the default-value of "port" under \<monitor-run-task\>\<task-arguments\> if PostgreSQL is not at port 5432.  
+  e. Change the default-value of the username under \<monitor-run-task\>\<task-arguments\> if the default user is not "postgres".  
+  f. Change the default-value of the password under <monitor-run-task\>\<task-arguments\> if the default password is not "welcome".  
+  g. (OPTIONAL) Change the default-value of the tier under \<monitor-run-task\>\<task-arguments\> if you want this metric to appear under a specific tier. Otherwise the metrics will be registered in every tier. 
+  h. Change the default-value of "columns" under \<monitor-run-task\>\<task-arguments\> if all the metrics specified above are not required.  
+  i. Change the refresh-intervale under \<monitor-run-task\>\<task-arguments\> if the default value of 300 seconds is not required. This determines the duration of time before querying for new data from the database.
 3. Restart the Machine Agent
 4. Look for the metrics in the AppDynamics Metric Browser.  
 
