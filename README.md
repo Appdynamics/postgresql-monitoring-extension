@@ -15,7 +15,7 @@ Metrics include:
 
 **Note**: Configure the AppDynamics Machine Agent prior to installing this monitoring extension.
 
-1. Run ant package. Deploy the PostgreSQLMonitor.zip file found in 'dist' into the \<machine agent home\>/monitors directory.
+0. Run ant package. Deploy the PostgreSQLMonitor.zip file found in 'dist' into the \<machine agent home\>/monitors directory.
 
 ```
 $ cd <machine agent home>/monitors/
