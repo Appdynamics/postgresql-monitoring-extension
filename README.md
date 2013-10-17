@@ -15,7 +15,7 @@ Metrics include:
 
 **Note**: Configure the AppDynamics Machine Agent prior to installing this monitoring extension.
 
-1. Run ant package. Deploy the PostgreSQLMonitor.zip file found in 'dist' into the \<machine agent home\>/monitors directory.
+###Run ant package. Deploy the PostgreSQLMonitor.zip file found in 'dist' into the \<machine agent home\>/monitors directory.
 
 ```
 $ cd <machine agent home>/monitors/
@@ -24,7 +24,7 @@ $ unzip PostgreSQLMonitor.zip
 
 ```
 
-2. Edit the monitor.xml and update:
+###Edit the monitor.xml and update:
 
 	a. Change \<execution-frequency-in-seconds\> if the default value of 60 seconds is not required. This defines how often the monitor should
 execute and collect metrics.  
@@ -47,8 +47,8 @@ wait before timing out.
 	
 	i. Change the refresh-intervale under \<monitor-run-task\>\<task-arguments\> if the default value of 300 seconds is not required. This determines the duration of time before querying for new data from the database.
 
-3. Restart the Machine Agent
-4. Look for the metrics in the AppDynamics Metric Browser.  
+###Restart the Machine Agent
+###Look for the metrics in the AppDynamics Metric Browser.  
 
 
 ##Metrics
