@@ -21,9 +21,7 @@ Metrics include:
 $ cd <machine agent home>/monitors/
 
 $ unzip PostgreSQLMonitor.zip
-
 ```
-
 2. Edit the monitor.xml and update:
 
 	a. Change \<execution-frequency-in-seconds\> if the default value of 60 seconds is not required. This defines how often the monitor should
