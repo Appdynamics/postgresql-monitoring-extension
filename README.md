@@ -25,11 +25,11 @@ $ unzip PostgreSQLMonitor.zip
 2. Edit the monitor.xml and update:
 
   a. Change \<execution-frequency-in-seconds\> if the default value of 60 seconds is not required. This defines how often the monitor should
-execute and collect metrics.  
+execute and collect metrics.    
   b. Change \<execution-timeout-in-secs\> if the default value of 60 seconds is not required. This defines how long the application should
-wait before timing out.
+wait before timing out.   
   c. Change the default-value of "host" under \<monitor-run-task\>\<task-arguments\> if PostgreSQL is not at
-"localhost". 
+"localhost".  
   d. Change the default-value of "port" under \<monitor-run-task\>\<task-arguments\> if PostgreSQL is not at port 5432.  
   e. Change the default-value of the username under \<monitor-run-task\>\<task-arguments\> if the default user is not "postgres".  
   f. Change the default-value of the password under <monitor-run-task\>\<task-arguments\> if the default password is not "welcome".  
