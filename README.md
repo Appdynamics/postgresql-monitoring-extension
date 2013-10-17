@@ -18,10 +18,12 @@ Metrics include:
 
 1. Run ant package. Deploy the PostgreSQLMonitor.zip file found in 'dist' into the \<machine agent home\>/monitors directory.
 
-> cd \<machine agent home\>/monitors/
+```
+$ cd <machine agent home>/monitors/
 
-> unzip PostgreSQLMonitor.zip
+$ unzip PostgreSQLMonitor.zip
 
+```
 3. Edit the monitor.xml and update:
 
 	a. Change \<execution-frequency-in-seconds\> if the default value of 60 seconds is not required. This defines how often the monitor should
