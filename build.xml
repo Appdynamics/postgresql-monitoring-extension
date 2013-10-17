@@ -20,6 +20,8 @@
         <copy todir="${build.dir}/PostgreSQLMonitor">
             <fileset dir="${conf.dir}" includes="monitor.xml"/>
         </copy>
+        <mkdir dir="${build.dir}/PostgreSQLMonitor/lib"/>
+        <copy file="${postgresql.jar}" todir="${build.dir}/PostgreSQLMonitor/lib"/>
         <delete dir="${build.dir}/classes"/>
     </target>
     <target name="package" depends="build">

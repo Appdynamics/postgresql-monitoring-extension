@@ -1,5 +1,5 @@
 <monitor>
-	<name>PgStatActivityMonitor</name>
+	<name>PostgreSQLMonitor</name>
 	<type>managed</type>
 	<description>Monitors Postgres PgStat Activity</description>
 	<monitor-configuration>
@@ -36,8 +36,8 @@
 			<argument name="refresh-interval" is-required="true" default-value="300" />
 		</task-arguments>
 		<java-task>
-			<classpath>postgres.jar;postgresql-8.4-701.jdbc3.jar</classpath>
-			<impl-class>com.singularity.ee.agent.systemagent.monitors.database.postgres.PgStatActivityMonitor</impl-class>
+			<classpath>lib/postgresql-8.4-701.jdbc3.jar</classpath>
+			<impl-class>com.appdynamics.monitors.postgres.PostgreSQLMonitor</impl-class>
 		</java-task>
 	</monitor-run-task>
 </monitor>
