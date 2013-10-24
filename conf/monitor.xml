@@ -36,7 +36,7 @@
 			<argument name="refresh-interval" is-required="true" default-value="300" />
 		</task-arguments>
 		<java-task>
-			<classpath>lib/postgresql-8.4-701.jdbc3.jar</classpath>
+			<classpath>PostgreSQLMonitor.jar;lib/postgresql-8.4-701.jdbc3.jar</classpath>
 			<impl-class>com.appdynamics.monitors.postgres.PostgreSQLMonitor</impl-class>
 		</java-task>
 	</monitor-run-task>
