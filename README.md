@@ -1,6 +1,6 @@
 # AppDynamics PostgreSQL Database - Monitoring Extension
 
-This extension works only with the Java agent.
+This extension works only with the standalone machine agent.
 
 ##Use Case
 PostgreSQL is an open source object-relational database system.
