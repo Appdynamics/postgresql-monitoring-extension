@@ -23,13 +23,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import com.appdynamics.monitors.common.JavaServersMonitor;
 import com.singularity.ee.agent.systemagent.api.MetricWriter;
@@ -43,16 +37,36 @@ public class PostgreSQLMonitor extends JavaServersMonitor
 	private volatile String tierName;
 	private volatile String database; // the database we are interested in collecting metrics on
 	private volatile int refreshIntervalInExecutionTicks;
-	private final Map<String, String> cachedValueMap;
+	private final Map<String, String> cachedValueMap = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
 	private volatile int currentNumExecutionTicks = -1;
 	private volatile List<String> columnNames;
+	private volatile List<String> cumulativeColumnNames;
+    private static final String[] dbStatisticsColumns = new String[]{"numbackends", "xact_commit", "xact_rollback", "blks_read", "blks_hit", "tup_returned", "tup_fetched", "tup_inserted", "tup_updated", "tup_deleted"};
+    private static final Map<String, String> columnDescriptions = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER){{
+        put("numbackends", "Num Backends");
+        put("xact_commit", "Txn Commits");
+        put("xact_rollback", "Txn Rollbacks");
+        put("blks_read", "Blocks Read");
+        put("blks_hit", "Blocks Hit");
+        put("tup_returned", "Tuples Returned");
+        put("tup_fetched", "Tuples Fetched");
+        put("tup_inserted", "Tuples Inserted");
+        put("tup_updated", "Tuples Updated");
+        put("tup_deleted", "Tuples Deleted");
+    }};
 
-	public PostgreSQLMonitor()
-	{
-		oldValueMap = Collections.synchronizedMap(new HashMap<String, String>());
-		cachedValueMap = Collections.synchronizedMap(new HashMap<String, String>());
-	}
-
+    private List<String> parseList(String valueString){
+        final List<String> result;
+        if (valueString == null || valueString.length() == 0)
+        {
+            result = Collections.emptyList();
+        }
+        else
+        {
+            result = Arrays.asList(valueString.split(","));
+        }
+        return result;
+    }
 	protected void parseArgs(Map<String, String> args)
 	{
 		super.parseArgs(args);
@@ -60,18 +74,10 @@ public class PostgreSQLMonitor extends JavaServersMonitor
 		database = getArg(args, "target-database", "postgres");
 		
 		// Assume all the columns we want values for are in a comma separated list
-		String columnNamesString = getArg(args, "columns", null);
-		
-		if (columnNamesString == null || columnNamesString.length() == 0)
-		{
-			columnNames = Collections.emptyList();
-		}
-		else
-		{
-			columnNames = Arrays.asList(columnNamesString.split(","));
-		}
-		
-		int refreshIntervalSecs = Integer.parseInt(getArg(args, "refresh-interval", "60"));
+		columnNames = parseList(getArg(args, "columns", null));
+		cumulativeColumnNames = parseList(getArg(args, "cumulative_columns", null));
+
+        int refreshIntervalSecs = Integer.parseInt(getArg(args, "refresh-interval", "60"));
 		
 		if (refreshIntervalSecs <= 60)
 		{
@@ -112,13 +118,13 @@ public class PostgreSQLMonitor extends JavaServersMonitor
 	
 		logger.debug("Connecting to: " + connStr);
 		Class.forName("org.postgresql.Driver").newInstance();
-		Connection conn = DriverManager.getConnection(connStr);
+		Connection conn = getConnection(connStr);
 		logger.debug("Successfully connected to Postgres DB");
 		return conn;
 	}
 
 	// collects all monitoring data for this time period from database
-	private Map<String, String> getValuesForColumns(List<String> columnNames, String query) throws Exception
+	protected Map<String, String> getValuesForColumns(List<String> columnNames, String query) throws Exception
 	{
 		Map<String, String> columnName2Value = new HashMap<String, String>();
 		
@@ -156,7 +162,7 @@ public class PostgreSQLMonitor extends JavaServersMonitor
 							logger.debug("[column,value] = ["+columnName+","+value+"]");
 						}
 						
-						columnName2Value.put(columnName.toUpperCase(), value);
+						columnName2Value.put(columnName, value);
 					}
 				}
 			}
@@ -186,7 +192,7 @@ public class PostgreSQLMonitor extends JavaServersMonitor
 				logger.debug("Querying fresh values for PostgreSQLMonitor ...");
 				
 				// Store the current values for the columns specified in the list
-				valueMap = getValuesForColumns(columnNames, "select * from pg_stat_database where datname='"+database+"'");
+				valueMap.putAll(getValuesForColumns(columnNames, "select * from pg_stat_database where datname='" + database + "'"));
 				
 				// Update the cached values
 				cachedValueMap.clear();
@@ -199,7 +205,7 @@ public class PostgreSQLMonitor extends JavaServersMonitor
 				logger.debug("Using cached values for PostgreSQLMonitor ...");
 				
 				// Use the cached values
-				valueMap = Collections.synchronizedMap(new HashMap<String, String>(cachedValueMap));
+				valueMap.putAll(cachedValueMap);
 			}	
 		}
 		catch (Exception ex)
@@ -211,29 +217,49 @@ public class PostgreSQLMonitor extends JavaServersMonitor
 		logger.debug("Starting METRIC COLLECTION for PostgreSQL Monitor.......");
 	
 		Set<String> uniqueColumnNames = new HashSet<String>(columnNames);
-		
-		printMetric("numbackends", "PostgreSQLMonitor|Num Backends", uniqueColumnNames);
-		printMetric("xact_commit", "PostgreSQLMonitor|Txn Commits", uniqueColumnNames);
-		printMetric("xact_rollback", "PostgreSQLMonitor|Txn Rollbacks", uniqueColumnNames);
-		printMetric("blks_read", "PostgreSQLMonitor|Blocks Read", uniqueColumnNames);		
-		printMetric("blks_hit", "PostgreSQLMonitor|Blocks Hit", uniqueColumnNames);		
-		printMetric("tup_returned", "PostgreSQLMonitor|Tuples Returned", uniqueColumnNames);		
-		printMetric("tup_fetched", "PostgreSQLMonitor|Tuples Fetched", uniqueColumnNames);	
-		printMetric("tup_inserted", "PostgreSQLMonitor|Tuples Inserted", uniqueColumnNames);			
-		printMetric("tup_updated", "PostgreSQLMonitor|Tuples Updated", uniqueColumnNames);
-		printMetric("tup_deleted", "PostgreSQLMonitor|Tuples Deleted", uniqueColumnNames);		
-		
+
+        final String dbMetricPrefix = getMetricPrefix();
+        for(String dbColumnName: dbStatisticsColumns){
+            printMetric(dbColumnName, dbMetricPrefix + getColumnDescription(dbColumnName), uniqueColumnNames);
+        }
 		return this.finishExecute();
 	}
-	
-	private void printMetric(String columnName, String metricLabel, Set<String> uniqueColumnNames)
+
+    private String getColumnDescription(String dbColumnName) {
+        if(columnDescriptions.containsKey(dbColumnName)){
+            return columnDescriptions.get(dbColumnName);
+        }else{
+            return dbColumnName;
+        }
+    }
+
+    private void printMetric(String columnName, String metricLabel, Set<String> uniqueColumnNames)
 	{
-		if (uniqueColumnNames.contains(columnName))
+        final String currentValue = getString(columnName);
+
+        if (uniqueColumnNames.contains(columnName))
 		{
-			printMetric(metricLabel, getString(columnName),
-					MetricWriter.METRIC_AGGREGATION_TYPE_OBSERVATION, 
-					MetricWriter.METRIC_TIME_ROLLUP_TYPE_CURRENT,
-					MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE);
+            String value;
+            final boolean print;
+            if(cumulativeColumnNames.contains(columnName)){
+                if(oldValueMap.containsKey(columnName)) {
+                    value = Long.toString(Long.parseLong(currentValue) - Long.parseLong(oldValueMap.get(columnName)));
+                    print = true;
+                }else{
+                    print = false;
+                    value = "-1";
+                }
+            }else{
+                value = currentValue;
+                print = true;
+            }
+
+            if(print){
+                printMetric(metricLabel, value,
+                        MetricWriter.METRIC_AGGREGATION_TYPE_OBSERVATION,
+                        MetricWriter.METRIC_TIME_ROLLUP_TYPE_CURRENT,
+                        MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE);
+            }
 		}
 	}
 
@@ -249,4 +275,7 @@ public class PostgreSQLMonitor extends JavaServersMonitor
 		}
 	}
 
+    protected Connection getConnection(String connString) throws SQLException {
+        return DriverManager.getConnection(connString);
+    }
 }

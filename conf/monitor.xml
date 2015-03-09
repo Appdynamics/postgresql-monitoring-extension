@@ -28,6 +28,7 @@
 			<argument name="tier" is-required="false" default-value="1stTier" />
 			
 			<argument name="columns" is-required="true" default-value="numbackends,xact_commit,xact_rollback,blks_read,blks_hit,tup_returned,tup_fetched,tup_inserted,tup_updated,tup_deleted" />
+			<argument name="cumulative_columns" is-required="true" default-value="xact_commit,xact_rollback,blks_read,blks_hit,tup_returned,tup_fetched,tup_inserted,tup_updated,tup_deleted" />
 
 			<!--
 				The interval in seconds at which you want to query the database for new metric values.

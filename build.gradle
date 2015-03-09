@@ -13,9 +13,6 @@ repositories {
     maven {
         url 'https://github.com/Appdynamics/maven-repo/raw/master/releases'
     }
-    maven {
-        url 'http://maven.restlet.com'
-    }
     mavenLocal()
 }
 
@@ -26,8 +23,8 @@ dependencies {
 
     configurations.compile.extendsFrom(configurations.releaseJars)
 
-    testCompile group: 'junit', name: 'junit', version: '4.11'
-    testCompile 'org.mockito:mockito-core:2.0.4-beta'
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-core:2.0.5-beta'
 }
 
 task wrapper(type: Wrapper) {
