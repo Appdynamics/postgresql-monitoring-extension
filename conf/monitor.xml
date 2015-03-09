@@ -26,18 +26,9 @@
 				If this argument is left out then the metrics will be registered in every tier.
 			-->
 			<argument name="tier" is-required="false" default-value="1stTier" />
-			
-			<argument name="columns" is-required="true" default-value="numbackends,xact_commit,xact_rollback,blks_read,blks_hit,tup_returned,tup_fetched,tup_inserted,tup_updated,tup_deleted" />
-			<argument name="cumulative_columns" is-required="true" default-value="xact_commit,xact_rollback,blks_read,blks_hit,tup_returned,tup_fetched,tup_inserted,tup_updated,tup_deleted" />
-
-			<!--
-				The interval in seconds at which you want to query the database for new metric values.
-				In between the refreshes we just used cached metric values.
-			-->
-			<argument name="refresh-interval" is-required="true" default-value="300" />
 		</task-arguments>
 		<java-task>
-			<classpath>PostgreSQLMonitor.jar;lib/postgresql-8.4-701.jdbc3.jar</classpath>
+			<classpath>postgresql-monitor-extension-1.0.0.jar</classpath>
 			<impl-class>com.appdynamics.monitors.postgres.PostgreSQLMonitor</impl-class>
 		</java-task>
 	</monitor-run-task>

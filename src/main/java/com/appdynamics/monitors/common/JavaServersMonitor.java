@@ -11,7 +11,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 public abstract class JavaServersMonitor extends AManagedMonitor {
     protected final Logger logger = Logger.getLogger(this.getClass().getName());
@@ -21,8 +21,8 @@ public abstract class JavaServersMonitor extends AManagedMonitor {
     protected volatile String userName;
     protected volatile String passwd;
 
-    protected final Map<String, String> oldValueMap = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
-    protected final Map<String, String> valueMap = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
+    protected final Map<String, String> oldValueMap = new ConcurrentSkipListMap<String, String>(String.CASE_INSENSITIVE_ORDER);
+    protected final Map<String, String> valueMap = new ConcurrentSkipListMap<String, String>(String.CASE_INSENSITIVE_ORDER);
     protected volatile long oldTime = 0;
     protected volatile long currentTime = 0;
 
@@ -58,11 +58,9 @@ public abstract class JavaServersMonitor extends AManagedMonitor {
         }
     }
 
-    protected String getMetricPrefix() {
-        return "";
-    }
+    protected abstract String getMetricPrefix();
 
-    protected void startExecute(Map<String, String> taskArguments, TaskExecutionContext taskContext) {
+    protected void startExecute(Map<String, String> taskArguments) {
         valueMap.clear();
         parseArgs(taskArguments);
     }
@@ -117,7 +115,6 @@ public abstract class JavaServersMonitor extends AManagedMonitor {
 
         // round the result to a integer since we don't handle fractions
         float result = Float.valueOf(strResult);
-        String resultStr = getString(result);
-        return resultStr;
+        return getString(result);
     }
 }

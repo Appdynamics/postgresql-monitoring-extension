@@ -18,7 +18,7 @@ repositories {
 
 dependencies {
     compile 'com.appdynamics:machine-agent:3.7.11'
-    compile 'org.postgresql:postgresql:9.3-1103-jdbc3'
+    releaseJars 'org.postgresql:postgresql:9.3-1103-jdbc3'
     compile 'log4j:log4j:1.2.17'
 
     configurations.compile.extendsFrom(configurations.releaseJars)
