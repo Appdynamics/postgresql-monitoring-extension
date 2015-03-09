@@ -18,10 +18,7 @@
 			<argument name="user" is-required="true" default-value="**username**" />
 			<argument name="password" is-required="true" default-value="**password**" />
 			
-			<!-- The database that the PgStat Activity metrics should be collected from -->
-			<argument name="target-database" is-required="true" default-value="postgres" />
-			
-			<!-- 
+			<!--
 				The tier under which the metrics should appear in the metric browser.
 				If this argument is left out then the metrics will be registered in every tier.
 			-->

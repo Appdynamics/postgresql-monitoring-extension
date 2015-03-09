@@ -42,14 +42,11 @@ public class PostgreSQLMonitor extends JavaServersMonitor {
         put("tup_deleted", "Tuples Deleted");
     }};
     private volatile String tierName;
-    private volatile String database; // the database we are interested in collecting metrics on
     private final Collection<String> cumulativeColumnNames = Arrays.asList("xact_commit", "xact_rollback", "blks_read", "blks_hit", "tup_returned", "tup_fetched", "tup_inserted", "tup_updated", "tup_deleted");
 
     protected void parseArgs(Map<String, String> args) {
         super.parseArgs(args);
         tierName = getArg(args, "tier", null); // if the tier is not specified then create the metrics for all tiers
-        database = getArg(args, "target-database", "postgres");
-
     }
 
     private Connection connect() throws SQLException, InstantiationException, IllegalAccessException, ClassNotFoundException {
@@ -180,7 +177,7 @@ public class PostgreSQLMonitor extends JavaServersMonitor {
         }
     }
 
-    protected String getMetricPrefix() {
+    protected String getMetricPrefix(String database) {
         if (tierName != null) {
             return "Server|Component:" + tierName + "|Postgres Server|" + database + "|";
         } else {

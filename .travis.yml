@@ -12,5 +12,5 @@ deploy:
   - 'build/distributions/postgresql-monitor-extension-1.0.0.zip'
   - 'README.md'
   on:
-    repo: fhalim/postgresql-monitor-extension
+    repo: fhalim/postgresql-monitoring-extension
     tags: true
