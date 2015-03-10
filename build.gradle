@@ -1,0 +1,45 @@
+apply plugin: 'java'
+apply plugin: 'distribution'
+
+sourceCompatibility = 1.5
+version = '1.0.0'
+
+configurations {
+    releaseJars
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'https://github.com/Appdynamics/maven-repo/raw/master/releases'
+    }
+    mavenLocal()
+}
+
+dependencies {
+    compile 'com.appdynamics:machine-agent:3.7.11'
+    releaseJars 'org.postgresql:postgresql:9.3-1103-jdbc3'
+    compile 'log4j:log4j:1.2.17'
+
+    configurations.compile.extendsFrom(configurations.releaseJars)
+
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-core:2.0.5-beta'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.3'
+}
+
+jar {
+    from configurations.releaseJars.collect { it.isDirectory() ? it : zipTree(it) }
+}
+
+task zip(type: Zip) {
+
+    from jar.outputs.files
+    from('conf/') {
+        include '*.xml'
+    }
+    into 'PostgresqlMonitor'
+}

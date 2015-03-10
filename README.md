@@ -2,6 +2,10 @@
 
 This extension works only with the standalone machine agent.
 
+
+[![Build Status](https://travis-ci.org/fhalim/postgresql-monitoring-extension.svg)](https://travis-ci.org/fhalim/postgresql-monitoring-extension)
+
+
 ##Use Case
 PostgreSQL is an open source object-relational database system.
 

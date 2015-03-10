@@ -1,0 +1,16 @@
+language: java
+script: ./gradlew clean check zip
+jdk:
+- oraclejdk8
+- oraclejdk7
+- openjdk7
+deploy:
+  provider: releases
+  api_key:
+    secure: u5VFpWQCccEjOQGmnERJBLy9I1GByTKyoNnTdkXBkZgibi532w88jNIU+jSIj3eXKot4sYvkKq6g5wy60mLM3jca8gGCT82ip8OOUZrA6FzoKpOQUWorFtZsY/K6wiv1nqXJwxnwGCSdpGfbiBTApAA+RTzKJt0qCkvFLjuz7pQ=
+  file:
+  - 'build/distributions/postgresql-monitor-extension-1.0.0.zip'
+  - 'README.md'
+  on:
+    repo: fhalim/postgresql-monitoring-extension
+    tags: true

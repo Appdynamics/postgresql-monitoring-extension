@@ -1,5 +1,7 @@
-*.class
-
 # Package Files #
-*.war
-*.ear
+.idea/
+build/
+dist/
+.gradle/
+*.iml
+*.log
