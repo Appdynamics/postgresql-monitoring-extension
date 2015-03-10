@@ -7,7 +7,7 @@ jdk:
 deploy:
   provider: releases
   api_key:
-    secure: Qotqa77NMZQKW+gaTKn8hccS7RQBMIpLrkr4ywCF3wOzK/aJGmUl0xBhFr6z3uJHbr5ha5aAl1Xv0DXmZDrDfzKBK/R7WLLzqACKCcP/xCuvS0w//Pe4rzwsnPnzDeWx8x6FN8moxLFHjBeQpLjecW3+OyV52kUFETzYtHcPPw4=
+    secure: u5VFpWQCccEjOQGmnERJBLy9I1GByTKyoNnTdkXBkZgibi532w88jNIU+jSIj3eXKot4sYvkKq6g5wy60mLM3jca8gGCT82ip8OOUZrA6FzoKpOQUWorFtZsY/K6wiv1nqXJwxnwGCSdpGfbiBTApAA+RTzKJt0qCkvFLjuz7pQ=
   file:
   - 'build/distributions/postgresql-monitor-extension-1.0.0.zip'
   - 'README.md'
