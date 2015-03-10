@@ -1,7 +1,6 @@
 package com.appdynamics.monitors.common;
 
 import com.singularity.ee.agent.systemagent.api.AManagedMonitor;
-import com.singularity.ee.agent.systemagent.api.MetricWriter;
 import com.singularity.ee.agent.systemagent.api.TaskExecutionContext;
 import com.singularity.ee.agent.systemagent.api.TaskOutput;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
@@ -14,6 +13,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 public abstract class JavaServersMonitor extends AManagedMonitor {
+    protected final Map<String, Map<String, String>> valueMap = new ConcurrentSkipListMap<String, Map<String, String>>(String.CASE_INSENSITIVE_ORDER);
+    protected final Map<String, Map<String, String>> oldValueMap = new ConcurrentSkipListMap<String, Map<String, String>>(String.CASE_INSENSITIVE_ORDER);
     protected final Logger logger = Logger.getLogger(this.getClass().getName());
 
     protected volatile String host;
@@ -21,8 +22,6 @@ public abstract class JavaServersMonitor extends AManagedMonitor {
     protected volatile String userName;
     protected volatile String passwd;
 
-    protected final Map<String, String> oldValueMap = new ConcurrentSkipListMap<String, String>(String.CASE_INSENSITIVE_ORDER);
-    protected final Map<String, String> valueMap = new ConcurrentSkipListMap<String, String>(String.CASE_INSENSITIVE_ORDER);
     protected volatile long oldTime = 0;
     protected volatile long currentTime = 0;
 
@@ -46,19 +45,6 @@ public abstract class JavaServersMonitor extends AManagedMonitor {
         return result;
     }
 
-    protected void printMetric(String name, String value, String aggType, String timeRollup, String clusterRollup) {
-        String metricName = getMetricPrefix() + name;
-        MetricWriter metricWriter = getMetricWriter(metricName, aggType, timeRollup, clusterRollup);
-        metricWriter.printMetric(value);
-
-        // just for debug output
-        if (logger.isDebugEnabled()) {
-            logger.debug("METRIC:  NAME:" + metricName + " VALUE:" + value + " :" + aggType + ":" + timeRollup + ":"
-                    + clusterRollup);
-        }
-    }
-
-    protected abstract String getMetricPrefix();
 
     protected void startExecute(Map<String, String> taskArguments) {
         valueMap.clear();
@@ -66,7 +52,9 @@ public abstract class JavaServersMonitor extends AManagedMonitor {
     }
 
     protected TaskOutput finishExecute() {
-        oldValueMap.putAll(valueMap);
+        for (Map.Entry<String, Map<String, String>> entry:valueMap.entrySet()){
+            oldValueMap.put(entry.getKey(), new ConcurrentSkipListMap<String, String>(entry.getValue()));
+        }
         oldTime = currentTime;
 
         // just for debug output
@@ -106,15 +94,5 @@ public abstract class JavaServersMonitor extends AManagedMonitor {
         return Integer.toString(result);
     }
 
-    // lookup value for key, convert to float, round up or down and then return as string form of int
-    protected String getString(String key) {
-        String strResult = valueMap.get(key);
 
-        if (strResult == null)
-            return "0";
-
-        // round the result to a integer since we don't handle fractions
-        float result = Float.valueOf(strResult);
-        return getString(result);
-    }
 }

@@ -24,11 +24,14 @@ import com.singularity.ee.agent.systemagent.api.TaskOutput;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 
 import java.sql.*;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 public class PostgreSQLMonitor extends JavaServersMonitor {
-    private static final String[] dbStatisticsColumns = new String[]{"numbackends", "xact_commit", "xact_rollback", "blks_read", "blks_hit", "tup_returned", "tup_fetched", "tup_inserted", "tup_updated", "tup_deleted"};
+    private static final String[] dbStatisticsColumns = new String[]{"numbackends", "xact_commit", "xact_rollback", "blks_read", "blks_hit", "tup_returned", "tup_fetched", "tup_inserted", "tup_updated", "tup_deleted", "conflicts", "deadlocks"};
+    private final Collection<String> cumulativeColumnNames = Arrays.asList("xact_commit", "xact_rollback", "blks_read", "blks_hit", "tup_returned", "tup_fetched", "tup_inserted", "tup_updated", "tup_deleted", "conflicts", "deadlocks");
     private static final Map<String, String> columnDescriptions = new ConcurrentSkipListMap<String, String>(String.CASE_INSENSITIVE_ORDER) {{
         put("numbackends", "Num Backends");
         put("xact_commit", "Txn Commits");
@@ -42,7 +45,6 @@ public class PostgreSQLMonitor extends JavaServersMonitor {
         put("tup_deleted", "Tuples Deleted");
     }};
     private volatile String tierName;
-    private final Collection<String> cumulativeColumnNames = Arrays.asList("xact_commit", "xact_rollback", "blks_read", "blks_hit", "tup_returned", "tup_fetched", "tup_inserted", "tup_updated", "tup_deleted");
 
     protected void parseArgs(Map<String, String> args) {
         super.parseArgs(args);
@@ -73,8 +75,8 @@ public class PostgreSQLMonitor extends JavaServersMonitor {
     }
 
     // collects all monitoring data for this time period from database
-    protected Map<String, String> getValuesForColumns(String[] columnNames, String query) throws Exception {
-        Map<String, String> columnName2Value = new HashMap<String, String>();
+    protected Map<String, Map<String, String>> getValuesForColumns(String[] columnNames, String query) throws Exception {
+        final Map<String, Map<String, String>> result = new ConcurrentSkipListMap<String, Map<String, String>>(String.CASE_INSENSITIVE_ORDER);
 
         Connection conn = null;
         Statement stmt = null;
@@ -96,6 +98,8 @@ public class PostgreSQLMonitor extends JavaServersMonitor {
             currentTime = System.currentTimeMillis();
 
             while (rs.next()) {
+                final String databaseName = rs.getString("datname");
+                final Map<String, String> columnName2Value = new ConcurrentSkipListMap<String, String>();
                 for (String columnName : columnNames) {
                     if (columnName != null) {
                         String value = rs.getString(columnName);
@@ -107,6 +111,7 @@ public class PostgreSQLMonitor extends JavaServersMonitor {
                         columnName2Value.put(columnName, value);
                     }
                 }
+                result.put(databaseName, columnName2Value);
             }
         } catch (Exception ex) {
             logger.error("Error while executing query [" + query + "]", ex);
@@ -115,7 +120,7 @@ public class PostgreSQLMonitor extends JavaServersMonitor {
             close(rs, stmt, conn);
         }
 
-        return Collections.synchronizedMap(columnName2Value);
+        return result;
     }
 
     public TaskOutput execute(Map<String, String> taskArguments, TaskExecutionContext taskContext)
@@ -123,10 +128,10 @@ public class PostgreSQLMonitor extends JavaServersMonitor {
         startExecute(taskArguments);
 
         try {
-        logger.debug("Querying fresh values for PostgreSQLMonitor ...");
+            logger.debug("Querying fresh values for PostgreSQLMonitor ...");
 
-        // Store the current values for the columns specified in the list
-        valueMap.putAll(getValuesForColumns(dbStatisticsColumns, "select * from pg_stat_database where datname='" + database + "'"));
+            // Store the current values for the columns specified in the list
+            valueMap.putAll(getValuesForColumns(dbStatisticsColumns, "select * from pg_stat_database"));
 
         } catch (Exception ex) {
             throw new TaskExecutionException(ex);
@@ -135,9 +140,14 @@ public class PostgreSQLMonitor extends JavaServersMonitor {
         // just for debug output
         logger.debug("Starting METRIC COLLECTION for PostgreSQL Monitor.......");
 
-        for (String dbColumnName : dbStatisticsColumns) {
-            printMetric(dbColumnName, getColumnDescription(dbColumnName));
+        for (Map.Entry<String, Map<String, String>> dbentry : valueMap.entrySet()) {
+            final String databaseName = dbentry.getKey();
+            final Map<String, String> values = dbentry.getValue();
+            for (Map.Entry<String, String> entry : values.entrySet()) {
+                printMetric(databaseName, entry.getKey(), getColumnDescription(entry.getKey()));
+            }
         }
+
         return this.finishExecute();
     }
 
@@ -149,16 +159,17 @@ public class PostgreSQLMonitor extends JavaServersMonitor {
         }
     }
 
-    private void printMetric(String columnName, String metricLabel) {
-        final String currentValue = getString(columnName);
+    private void printMetric(String databaseName, String columnName, String metricLabel) {
+        final String currentValue = getString(databaseName, columnName);
 
         final String value;
         final boolean print;
         final boolean metricIsCumulative = cumulativeColumnNames.contains(columnName);
         if (metricIsCumulative) {
-            if (oldValueMap.containsKey(columnName)) {
-                logger.debug(String.format("%s: Current value: %s, previous value: %s", columnName, currentValue, oldValueMap.get(columnName)));
-                value = getString(Long.parseLong(currentValue) - Long.parseLong(oldValueMap.get(columnName)));
+            if (oldValueMap.containsKey(databaseName) && oldValueMap.get(databaseName).containsKey(columnName)) {
+                final String oldValue = oldValueMap.get(databaseName).get(columnName);
+                logger.debug(String.format("%s: Current value: %s, previous value: %s", columnName, currentValue, oldValue));
+                value = getString(Long.parseLong(currentValue) - Long.parseLong(oldValue));
                 print = true;
             } else {
                 print = false;
@@ -170,10 +181,22 @@ public class PostgreSQLMonitor extends JavaServersMonitor {
         }
 
         if (print) {
-            printMetric(metricLabel, value,
+            printMetric(databaseName, metricLabel, value,
                     metricIsCumulative ? MetricWriter.METRIC_AGGREGATION_TYPE_AVERAGE : MetricWriter.METRIC_AGGREGATION_TYPE_OBSERVATION,
-                    metricIsCumulative? MetricWriter.METRIC_TIME_ROLLUP_TYPE_AVERAGE : MetricWriter.METRIC_TIME_ROLLUP_TYPE_CURRENT,
+                    metricIsCumulative ? MetricWriter.METRIC_TIME_ROLLUP_TYPE_AVERAGE : MetricWriter.METRIC_TIME_ROLLUP_TYPE_CURRENT,
                     metricIsCumulative ? MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_INDIVIDUAL : MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE);
+        }
+    }
+
+    protected void printMetric(String databaseName, String name, String value, String aggType, String timeRollup, String clusterRollup) {
+        String metricName = getMetricPrefix(databaseName) + name;
+        MetricWriter metricWriter = getMetricWriter(metricName, aggType, timeRollup, clusterRollup);
+        metricWriter.printMetric(value);
+
+        // just for debug output
+        if (logger.isDebugEnabled()) {
+            logger.debug("METRIC:  NAME:" + metricName + " VALUE:" + value + " :" + aggType + ":" + timeRollup + ":"
+                    + clusterRollup);
         }
     }
 
@@ -187,5 +210,18 @@ public class PostgreSQLMonitor extends JavaServersMonitor {
 
     protected Connection getConnection(String connString) throws SQLException {
         return DriverManager.getConnection(connString);
+    }
+
+    // lookup value for key, convert to float, round up or down and then return as string form of int
+    protected String getString(String databaseName, String key) {
+        if (!valueMap.containsKey(databaseName) || !valueMap.get(databaseName).containsKey(key))
+            return "0";
+
+        Map<String, String> dbResultMap = valueMap.get(databaseName);
+        String strResult = dbResultMap.get(key);
+
+        // round the result to a integer since we don't handle fractions
+        float result = Float.valueOf(strResult);
+        return getString(result);
     }
 }
