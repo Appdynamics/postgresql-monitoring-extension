@@ -75,7 +75,7 @@ public class PostgreSQLMonitor extends JavaServersMonitor {
     }
 
     // collects all monitoring data for this time period from database
-    protected Map<String, Map<String, String>> getValuesForColumns(String[] columnNames, String query) throws Exception {
+    Map<String, Map<String, String>> getValuesForColumns(String[] columnNames, String query) throws Exception {
         final Map<String, Map<String, String>> result = new ConcurrentSkipListMap<String, Map<String, String>>(String.CASE_INSENSITIVE_ORDER);
 
         Connection conn = null;
@@ -181,15 +181,14 @@ public class PostgreSQLMonitor extends JavaServersMonitor {
         }
 
         if (print) {
-            printMetric(databaseName, metricLabel, value,
+            printMetric(getMetricPrefix(databaseName) + metricLabel, value,
                     metricIsCumulative ? MetricWriter.METRIC_AGGREGATION_TYPE_AVERAGE : MetricWriter.METRIC_AGGREGATION_TYPE_OBSERVATION,
                     metricIsCumulative ? MetricWriter.METRIC_TIME_ROLLUP_TYPE_AVERAGE : MetricWriter.METRIC_TIME_ROLLUP_TYPE_CURRENT,
                     metricIsCumulative ? MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_INDIVIDUAL : MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE);
         }
     }
 
-    protected void printMetric(String databaseName, String name, String value, String aggType, String timeRollup, String clusterRollup) {
-        String metricName = getMetricPrefix(databaseName) + name;
+    void printMetric(String metricName, String value, String aggType, String timeRollup, String clusterRollup) {
         MetricWriter metricWriter = getMetricWriter(metricName, aggType, timeRollup, clusterRollup);
         metricWriter.printMetric(value);
 
@@ -200,7 +199,7 @@ public class PostgreSQLMonitor extends JavaServersMonitor {
         }
     }
 
-    protected String getMetricPrefix(String database) {
+    String getMetricPrefix(String database) {
         if (tierName != null) {
             return "Server|Component:" + tierName + "|Postgres Server|" + database + "|";
         } else {
@@ -208,12 +207,12 @@ public class PostgreSQLMonitor extends JavaServersMonitor {
         }
     }
 
-    protected Connection getConnection(String connString) throws SQLException {
+    Connection getConnection(String connString) throws SQLException {
         return DriverManager.getConnection(connString);
     }
 
     // lookup value for key, convert to float, round up or down and then return as string form of int
-    protected String getString(String databaseName, String key) {
+    String getString(String databaseName, String key) {
         if (!valueMap.containsKey(databaseName) || !valueMap.get(databaseName).containsKey(key))
             return "0";
 

@@ -22,7 +22,6 @@ public abstract class JavaServersMonitor extends AManagedMonitor {
     protected volatile String userName;
     protected volatile String passwd;
 
-    protected volatile long oldTime = 0;
     protected volatile long currentTime = 0;
 
     public abstract TaskOutput execute(Map<String, String> taskArguments, TaskExecutionContext taskContext)
@@ -55,7 +54,6 @@ public abstract class JavaServersMonitor extends AManagedMonitor {
         for (Map.Entry<String, Map<String, String>> entry:valueMap.entrySet()){
             oldValueMap.put(entry.getKey(), new ConcurrentSkipListMap<String, String>(entry.getValue()));
         }
-        oldTime = currentTime;
 
         // just for debug output
         logger.debug("Finished METRIC COLLECTION for Monitor.......");

@@ -13,13 +13,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 
 public class PostgreSQLMonitorTests {
-    PostgreSQLMonitor monitor;
-    Statement mockStatement;
-    Connection mockConnection;
+    private PostgreSQLMonitor monitor;
+    private Statement mockStatement;
+    private Connection mockConnection;
 
     @Before
     public void before() throws SQLException {
@@ -44,7 +43,7 @@ public class PostgreSQLMonitorTests {
     @Test
     public void testPostsRecordsFound() throws TaskExecutionException, SQLException {
         final Map<String, Map<String, String>> rows = new TreeMap<String, Map<String, String>>(String.CASE_INSENSITIVE_ORDER);
-        final Map<String, Map<String, String>> printedValues = new TreeMap<String, Map<String, String>>(String.CASE_INSENSITIVE_ORDER);
+        final Map<String, String> printedValues = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
         monitor = new PostgreSQLMonitor() {
             @Override
             protected Map<String, Map<String, String>> getValuesForColumns(String[] columns, String query) throws Exception {
@@ -52,15 +51,12 @@ public class PostgreSQLMonitorTests {
             }
 
             @Override
-            protected void printMetric(String databaseName, String name, String value, String aggType, String timeRollup, String clusterRollup) {
-                if(!printedValues.containsKey(databaseName)){
-                    printedValues.put(databaseName, new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER));
-                }
-                printedValues.get(databaseName).put(name, value);
+            protected void printMetric(String metricLabel, String value, String aggType, String timeRollup, String clusterRollup) {
+                printedValues.put(metricLabel, value);
             }
         };
         HashMap<String, String> args = new HashMap<String, String>();
-        args.put("cumulative_columns","xact_commit");
+        args.put("cumulative_columns", "xact_commit");
 
         rows.put("dev1", new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER));
         rows.put("dev2", new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER));
@@ -68,13 +64,13 @@ public class PostgreSQLMonitorTests {
         rows.get("dev2").put("NUMBACKENDS", "5");
         rows.get("dev1").put("xact_commit", "3");
         monitor.execute(args, null);
-        Assert.assertTrue(printedValues.containsKey("dev1"));
-        Assert.assertEquals("1", printedValues.get("dev1").get("Num Backends"));
-        Assert.assertEquals("5", printedValues.get("dev2").get("Num Backends"));
+        Assert.assertTrue(printedValues.containsKey("Custom Metrics|Postgres Server|dev1|Num Backends"));
+        Assert.assertEquals("1", printedValues.get("Custom Metrics|Postgres Server|dev1|Num Backends"));
+        Assert.assertEquals("5", printedValues.get("Custom Metrics|Postgres Server|dev2|Num Backends"));
         rows.get("dev1").put("xact_commit", "6");
         rows.get("dev1").put("numbackends", "2");
         monitor.execute(args, null);
-        Assert.assertEquals("3", printedValues.get("dev1").get("Txn Commits"));
-        Assert.assertEquals("2", printedValues.get("dev1").get("Num Backends"));
+        Assert.assertEquals("3", printedValues.get("Custom Metrics|Postgres Server|dev1|Txn Commits"));
+        Assert.assertEquals("2", printedValues.get("Custom Metrics|Postgres Server|dev1|Num Backends"));
     }
 }
