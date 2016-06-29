@@ -1,6 +1,6 @@
 #Define postgress server cofiguration
 pgServers:
-   - name: "Local Postgres"
+   - displayName: "Local Postgres"
      host: "localhost"
      port: 5432
      user: "postgres"
@@ -10,7 +10,7 @@ pgServers:
      encryptedPassword: "/UNgClxtOb55gAln9NAzrA=="
      encryptionKey: "welcome"
      #The database that the PgStat Activity metrics should be collected from
-     targetDatabase: "postgres"
+     targetDatabase: "test"
 
 # number of concurrent tasks
 numberOfThreads: 1

@@ -38,7 +38,7 @@ public class PostgreTask implements Runnable {
 
     public void run() {
 
-        String name = (String) postgresServer.get("name");
+        String name = (String) postgresServer.get("displayName");
         String host = (String) postgresServer.get("host");
         String port = String.valueOf(postgresServer.get("port"));
         String user = (String) postgresServer.get("user");
@@ -52,7 +52,7 @@ public class PostgreTask implements Runnable {
 
         List<String> columnNames = getColumnNames(stat);
 
-        Map<String, String> valuesForColumns = getValuesForColumns(host, port, user, decryptedPassword, columnNames, "select * from pg_stat_database where datname='" + database + "'");
+        Map<String, String> valuesForColumns = getValuesForColumns(host, port, user, decryptedPassword, columnNames, database);
         printMetrics(name, valuesForColumns, stat);
 
     }
@@ -108,7 +108,7 @@ public class PostgreTask implements Runnable {
         }
     }
 
-    private Map<String, String> getValuesForColumns(String host, String port, String user, String password, List<String> columnNames, String query) {
+    private Map<String, String> getValuesForColumns(String host, String port, String user, String password, List<String> columnNames, String database) {
         Map<String, String> columnName2Value = new HashMap<String, String>();
 
         Connection conn = null;
@@ -117,8 +117,10 @@ public class PostgreTask implements Runnable {
 
         boolean debug = logger.isDebugEnabled();
 
+        String query = "select * from pg_stat_database where datname='" + database + "'";
+
         try {
-            conn = connect(host, port, user, password);
+            conn = connect(host, port, database, user, password);
             stmt = conn.createStatement();
 
             if (debug) {
@@ -149,7 +151,7 @@ public class PostgreTask implements Runnable {
         return columnName2Value;
     }
 
-    private Connection connect(String host, String port, String userName, String passwd) throws SQLException, InstantiationException, IllegalAccessException, ClassNotFoundException {
+    private Connection connect(String host, String port, String database, String userName, String passwd) throws SQLException, InstantiationException, IllegalAccessException, ClassNotFoundException {
         String connStr = "jdbc:postgresql://" + host + ":";
 
         if ((port == null) || (port.equals(""))) {
@@ -158,7 +160,7 @@ public class PostgreTask implements Runnable {
             connStr += port;
         }
 
-        connStr += "/postgres?";
+        connStr += "/"+database+"?";
 
         if ((userName != null) && (!userName.equals(""))) {
             connStr += "user=" + userName;

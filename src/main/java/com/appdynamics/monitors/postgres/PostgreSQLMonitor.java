@@ -123,7 +123,7 @@ public class PostgreSQLMonitor extends AManagedMonitor {
 
                     for (Map<String, Object> postgresServer : postgresServers) {
 
-                        String name = (String) postgresServer.get("name");
+                        String name = (String) postgresServer.get("displayName");
 
                         Stat stat = getStat(stats, name);
 

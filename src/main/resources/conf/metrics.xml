@@ -1,4 +1,5 @@
 <stats>
+    <!-- name should match the displayName of pgServers in config.yml -->
     <stat name="Local Postgres" metric-type="OBS.CUR.COL">
         <metric columnName="numbackends" label="Number of backends"/>
         <metric columnName="xact_commit" label="Committed Transactions"/>
