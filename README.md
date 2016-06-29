@@ -17,29 +17,68 @@ Metrics include:
 
 **Note**: Configure the AppDynamics Machine Agent prior to installing this monitoring extension.
 
-0. Run ant package. Deploy the PostgreSQLMonitor.zip file found in 'dist' into the \<machine agent home\>/monitors directory.
+0. Run mvn clean install. Extract the PostgreSQLMonitor.zip file found in 'target' into the \<machine agent home\>/monitors directory.
 
 ```
 $ cd <machine agent home>/monitors/
 
 $ unzip PostgreSQLMonitor.zip
 ```
-2. Edit the monitor.xml and update:
+2. Edit the config.yml and provide details of postgres database to connect to and fetch metrics
+3. Edit metrics.xml and update the details
+4. Restart the Machine Agent
+5. Look for the metrics in the AppDynamics Metric Browser.  
 
-  a. Change \<execution-frequency-in-seconds\> if the default value of 60 seconds is not required. This defines how often the monitor should
-execute and collect metrics.    
-  b. Change \<execution-timeout-in-secs\> if the default value of 60 seconds is not required. This defines how long the application should
-wait before timing out.   
-  c. Change the default-value of "host" under \<monitor-run-task\>\<task-arguments\> if PostgreSQL is not at
-"localhost".  
-  d. Change the default-value of "port" under \<monitor-run-task\>\<task-arguments\> if PostgreSQL is not at port 5432.  
-  e. Change the default-value of the username under \<monitor-run-task\>\<task-arguments\> if the default user is not "postgres".  
-  f. Change the default-value of the password under <monitor-run-task\>\<task-arguments\> if the default password is not "welcome".  
-  g. (OPTIONAL) Change the default-value of the tier under \<monitor-run-task\>\<task-arguments\> if you want this metric to appear under a specific tier. Otherwise the metrics will be registered in every tier.  
-  h. Change the default-value of "columns" under \<monitor-run-task\>\<task-arguments\> if all the metrics specified above are not required.  
-  i. Change the refresh-intervale under \<monitor-run-task\>\<task-arguments\> if the default value of 300 seconds is not required. This determines the duration of time before querying for new data from the database.
-3. Restart the Machine Agent
-4. Look for the metrics in the AppDynamics Metric Browser.  
+
+## Sample config.yml
+
+```
+#Define postgress server cofiguration
+pgServers:
+   - displayName: "Local Postgres"
+     host: "localhost"
+     port: 5432
+     user: "postgres"
+
+     #Provide password or encryptedPassword and encryptionKey. See the documentation to find about password encryption.
+     password:
+     encryptedPassword: "/UNgClxtOb55gAln9NAzrA=="
+     encryptionKey: "welcome"
+     #The database that the PgStat Activity metrics should be collected from
+     targetDatabase: "test"
+
+# number of concurrent tasks
+numberOfThreads: 1
+
+taskSchedule:
+    numberOfThreads: 1
+    taskDelaySeconds: 300
+
+metricPrefix: "Custom Metrics|Postgres Server|"
+
+```
+
+##Sample metrics.xml
+
+```
+<stats>
+    <!-- name should match the displayName of pgServers in config.yml -->
+    <stat name="Local Postgres" metric-type="OBS.CUR.COL">
+        <metric columnName="numbackends" label="Number of backends"/>
+        <metric columnName="xact_commit" label="Committed Transactions"/>
+        <metric columnName="xact_rollback" label="Rolled Back Transactions"/>
+        <metric columnName="blks_read" label="Disk Blocks Read"/>
+        <metric columnName="blks_hit" label="Disk Blocks Hit"/>
+        <metric columnName="tup_returned" label="Rows Returned"/>
+        <metric columnName="tup_fetched" label="Rows Fetched"/>
+        <metric columnName="tup_inserted" label="Rows Inserted"/>
+        <metric columnName="tup_updated" label="Rows Updated"/>
+        <metric columnName="tup_deleted" label="Rows Deleted"/>
+    </stat>
+</stats>
+```
+
+Note: For each database defined in pgServers of config.yml, you have to define one \<stat\> element in metrics.xml
 
 
 ##Metrics
@@ -56,9 +95,6 @@ wait before timing out.
 | tup\_inserted | Tuples Inserted |
 | tup\_updated | Tuples Updated |
 | tup\_deleted | Tuples Deleted |
-
-
-  
 
 
 ##Contributing
