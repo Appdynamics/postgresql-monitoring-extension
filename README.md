@@ -81,6 +81,23 @@ metricPrefix: "Custom Metrics|Postgres Server|"
 Note: For each database defined in pgServers of config.yml, you have to define one \<stat\> element in metrics.xml
 
 
+##Credentials Encryption
+
+To supply encrypted password in config.yml, follow the steps below:
+
+1. Download the util jar to encrypt the password from [here](https://github.com/Appdynamics/maven-repo/blob/master/releases/com/appdynamics/appd-exts-commons/1.1.2/appd-exts-commons-1.1.2.jar).
+2. Run command:
+
+	~~~   
+	java -cp appd-exts-commons-1.1.2.jar com.appdynamics.extensions.crypto.Encryptor EncryptionKey CredentialToEncrypt
+	
+	For example: 
+	java -cp "appd-exts-commons-1.1.2.jar" com.appdynamics.extensions.crypto.Encryptor test myPassword
+
+	~~~
+3. In the config.yaml, provide the EncryptionKey used in encryptionKey, as well as the resulting encrypted password in encryptedPassword.
+
+
 ##Metrics
 
 | Variable | Description |
