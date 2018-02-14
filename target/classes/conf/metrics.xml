@@ -1,0 +1,15 @@
+<stats>
+    <!-- name should match the displayName of pgServers in config.yml -->
+    <stat name="Local Postgres" metric-type="OBS.CUR.COL">
+        <metric columnName="numbackends" label="Number of backends"/>
+        <metric columnName="xact_commit" label="Committed Transactions"/>
+        <metric columnName="xact_rollback" label="Rolled Back Transactions"/>
+        <metric columnName="blks_read" label="Disk Blocks Read"/>
+        <metric columnName="blks_hit" label="Disk Blocks Hit"/>
+        <metric columnName="tup_returned" label="Rows Returned"/>
+        <metric columnName="tup_fetched" label="Rows Fetched"/>
+        <metric columnName="tup_inserted" label="Rows Inserted"/>
+        <metric columnName="tup_updated" label="Rows Updated"/>
+        <metric columnName="tup_deleted" label="Rows Deleted"/>
+    </stat>
+</stats>

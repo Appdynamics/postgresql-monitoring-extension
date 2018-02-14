@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="maven-antrun-" default="main"  >
+<target name="main">
+  <mkdir dir="/Users/bhuvnesh.kumar/repos/appdynamics/extensions/postgresql-monitoring-extension/target/PostgreSQLMonitor"/>
+  <copy todir="/Users/bhuvnesh.kumar/repos/appdynamics/extensions/postgresql-monitoring-extension/target/PostgreSQLMonitor">
+    <fileset includes="monitor.xml" dir="src/main/resources/conf"/>
+    <fileset includes="config.yml" dir="src/main/resources/conf"/>
+    <fileset includes="metrics.xml" dir="src/main/resources/conf"/>
+  </copy>
+  <copy todir="/Users/bhuvnesh.kumar/repos/appdynamics/extensions/postgresql-monitoring-extension/target/PostgreSQLMonitor">
+    <fileset includes="postgresql-monitoring-extension.jar" dir="/Users/bhuvnesh.kumar/repos/appdynamics/extensions/postgresql-monitoring-extension/target"/>
+  </copy>
+  <zip destfile="/Users/bhuvnesh.kumar/repos/appdynamics/extensions/postgresql-monitoring-extension/target/PostgreSQLMonitor-2.1.zip">
+    <zipfileset prefix="PostgreSQLMonitor/" filemode="755" dir="/Users/bhuvnesh.kumar/repos/appdynamics/extensions/postgresql-monitoring-extension/target/PostgreSQLMonitor"/>
+  </zip>
+  <delete dir="/Users/bhuvnesh.kumar/repos/appdynamics/extensions/postgresql-monitoring-extension/target/PostgreSQLMonitor"/>
+</target>
+</project>
