@@ -1,32 +1,38 @@
 <!--
-  ~   Copyright 2018. AppDynamics LLC and its affiliates.
-  ~   All Rights Reserved.
-  ~   This is unpublished proprietary source code of AppDynamics LLC and its affiliates.
-  ~   The copyright notice above does not evidence any actual or intended publication of such source code.
+  ~ Copyright (c) 2018 AppDynamics,Inc.
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
   ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
   -->
 
 <monitor>
 	<name>PostgreSQLMonitor</name>
 	<type>managed</type>
-	<description>Monitors Postgres PgStat Activity</description>
-	<monitor-configuration>
-	</monitor-configuration>
+	<description>Monitors PostgreSQL</description>
+	<monitor-configuration></monitor-configuration>
 	<monitor-run-task>
 		<execution-style>periodic</execution-style>
 		<execution-frequency-in-seconds>60</execution-frequency-in-seconds>
 		<name>Postgres Monitor Run Task</name>
-		<display-name>Postgres PgStat Activity Monitor Task</display-name>
-		<description>Postgres PgStat Activity Monitor Task</description>
+		<display-name>PostgreSQL Monitor Task</display-name>
+		<description>PostgresSQL Monitor Task</description>
 		<type>java</type>
+		<execution-frequency-in-seconds>60</execution-frequency-in-seconds>
 		<execution-timeout-in-secs>60</execution-timeout-in-secs>
 		<task-arguments>
 			<argument name="config-file" is-required="true" default-value="monitors/PostgreSQLMonitor/config.yml" />
-			<argument name="metric-file" is-required="true" default-value="monitors/PostgreSQLMonitor/metrics.xml" />
 		</task-arguments>
 		<java-task>
 			<classpath>postgresql-monitoring-extension.jar</classpath>
-			<impl-class>com.appdynamics.monitors.postgres.PostgreSQLMonitor</impl-class>
+			<impl-class>com.appdynamics.extensions.postgres.PostgresMonitor</impl-class>
 		</java-task>
 	</monitor-run-task>
 </monitor>

@@ -1,22 +1,277 @@
-#Define postgress server cofiguration
-pgServers:
-   - displayName: "Local Postgres"
-     host: "localhost"
-     port: 5432
-     user: "postgres"
+---
+# This will create this metric in all the tiers, under this path.
+metricPrefix: "Custom Metrics|PostgreSQL"
 
-     #Provide password or encryptedPassword and encryptionKey. See the documentation to find about password encryption.
-     password:
-     encryptedPassword: "/UNgClxtOb55gAln9NAzrA=="
-     encryptionKey: "welcome"
-     #The database that the PgStat Activity metrics should be collected from
-     targetDatabase: "test"
+# This will create it in specific Tier aka Component. Replace <COMPONENT_ID>.
+#metricPrefix: "Server|Component:<ComponentID>|Custom Metrics|PostgreSQL"
 
-# number of concurrent tasks
-numberOfThreads: 1
+ApplicationName: "AppDynamicsPSQLExtension"
 
-taskSchedule:
-    numberOfThreads: 1
-    taskDelaySeconds: 300
+servers:
+  - displayName: "Local cluster"
+    host: "127.0.0.1"
+    useIpv6: "false"
+    port: "5432"
+    user: "pradeep.nair"
+    password: ""
+    encryptedPassword: ""
+#    useSsl: "false"
+#    optionalConnectionProperties:
+#      - connectTimeout: 100
+#        tcpKeepAlive: true
+    databases:
+      - dbName: "test"
+        queries:
+          # server level stats, run this query under one database for one server. Add where clauses to query to filter databases
+          - name: "Database Stats"
+            serverLvlQuery: "true"
+            queryStmt: "SELECT datname, numbackends, xact_commit, xact_rollback, blks_read, blks_hit, tup_returned,
+                               tup_fetched, tup_inserted, tup_updated, tup_deleted, conflicts, temp_files, temp_bytes,
+                               deadlocks, blk_read_time, blk_write_time, pg_catalog.pg_database_size(datname) AS dbSize
+                        FROM pg_stat_database"
+            columns:
+              - name: "datname"
+                type: "metricPath"
+              - name: "numbackends"
+                type: "metricValue"
+                properties:
+                  alias: "Number of connections"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "xact_commit"
+                type: "metricValue"
+                properties:
+                  alias: "Transactions Committed"
+                  delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "xact_rollback"
+                type: "metricValue"
+                properties:
+                  alias: "Transactions Rollbacked"
+                  delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "blks_read"
+                type: "metricValue"
+                properties:
+                  alias: "Blocks Read"
+                  delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "blks_hit"
+                type: "metricValue"
+                properties:
+                  alias: "Blocks Hit"
+                  delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "tup_returned"
+                type: "metricValue"
+                properties:
+                  alias: "Tuples Returned"
+                  delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "tup_fetched"
+                type: "metricValue"
+                properties:
+                  alias: "Tuples fetched"
+                  delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "tup_inserted"
+                type: "metricValue"
+                properties:
+                  alias: "Tuples Inserted"
+                  delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "tup_updated"
+                type: "metricValue"
+                properties:
+                  alias: "Tuples Updated"
+                  delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "tup_deleted"
+                type: "metricValue"
+                properties:
+                  alias: "Tuples Deleted"
+                  delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "conflicts"
+                type: "metricValue"
+                properties:
+                  alias: "Conflicts"
+                  delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "temp_files"
+                type: "metricValue"
+                properties:
+                  alias: "Temp files created"
+                  delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "temp_bytes"
+                type: "metricValue"
+                properties:
+                  alias: "Temp bytes occupied"
+                  delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "deadlocks"
+                type: "metricValue"
+                properties:
+                  alias: "Deadlocks"
+                  delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "blk_read_time"
+                type: "metricValue"
+                properties:
+                  alias: "Read block time (seconds)"
+                  delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "blk_write_time"
+                type: "metricValue"
+                properties:
+                  alias: "Write Block time (seconds)"
+                  delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "dbSize"
+                type: "metricValue"
+                properties:
+                  alias: "Database Size (KB)"
+                  multiplier: 0.0009765625
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
 
-metricPrefix: "Custom Metrics|Postgres Server|"
+          - name: "bg_writer stats"
+            serverLvlQuery: "false"
+            # add where clause to the query to filter tables
+            queryStmt: "SELECT relname, seq_scan, seq_tup_read, idx_scan, idx_tup_fetched, n_tup_ins, n_tup_upd, n_tup_del,
+                               n_live_tup, n_dead_tup, vacuum_count, auto_vacuum
+                        FROM pg_stat_user_tables"
+            columns:
+              - name: "relname"
+                type: "metricPath"
+              - name: "seq_scan"
+                type: "metricValue"
+                properties:
+                  alias: "Sequential Scans"
+                  delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "seq_tup_read"
+                type: "metricValue"
+                properties:
+                  alias: "Tuples fetched by Sequential Scans"
+                  delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "idx_scan"
+                type: "metricValue"
+                properties:
+                  alias: "Index Scans"
+                  delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "idx_tup_fetch"
+                type: "metricValue"
+                properties:
+                  alias: "Tuples fetched Index Scans"
+                  delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "n_tup_ins"
+                type: "metricValue"
+                properties:
+                  alias: "Number of Rows Inserted"
+                  delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "n_tup_upd"
+                type: "metricValue"
+                properties:
+                  alias: "Number of Rows Updated"
+                  delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "n_tup_del"
+                type: "metricValue"
+                properties:
+                  alias: "Number of Rows Deleted"
+                  delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "n_live_tup"
+                type: "metricValue"
+                properties:
+                  alias: "Estimated Number of Live Rows"
+                  delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "n_dead_tup"
+                type: "metricValue"
+                properties:
+                  alias: "Estimated Number of Dead Rows"
+                  delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "vacuum_count"
+                type: "metricValue"
+                properties:
+                  alias: "Number of Manual Vacuums Performed"
+                  delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "autovacuum_count"
+                type: "metricValue"
+                properties:
+                  alias: "Number of Auto Vacuums Performed"
+                  delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+
+encryptionKey: ""
+
+# numberOfThreads = for each server (1 + number_of(databases)). For example if you have 1 server and 2 databases then numberOfThreads = 1 + 2 = 3
+numberOfThreads: 2
+
+#taskSchedule:
+#  numberOfThreads: 1
+#  taskDelaySeconds: 300
+...
