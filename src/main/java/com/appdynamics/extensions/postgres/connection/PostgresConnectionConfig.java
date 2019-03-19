@@ -46,13 +46,15 @@ public class PostgresConnectionConfig {
     private static PostgresConnectionConfig processBuilder(Builder builder) {
         String url = ConnectionUtils.buildURL(PROTOCOL, builder.host, builder.port, builder.database, builder.useIpv6);
         Properties props = new Properties();
-        props.put(USER, builder.user);
+        props.setProperty(USER, builder.user);
         if (!Strings.isNullOrEmpty(builder.password)) {
-            props.put(PASSWORD, builder.password);
+            props.setProperty(PASSWORD, builder.password);
         }
-        props.put(APPLICATION_NAME, builder.applicationName);
-        props.put("readOnly", builder.readOnly);
+        props.setProperty(APPLICATION_NAME, builder.applicationName);
+        props.setProperty("readOnly", builder.readOnly);
         if (builder.properties != null && builder.properties.size() != 0) {
+            // TODO though using putAll is not recommend for Properties this should be fine imo, since the Map is
+            //  bounded by String, String. lmk
             props.putAll(builder.properties);
         }
         return new PostgresConnectionConfig(url, props);
@@ -66,7 +68,7 @@ public class PostgresConnectionConfig {
         private String user;
         private String password;
         private String applicationName;
-        private Boolean readOnly;
+        private String readOnly;
         private Map<String, String> properties;
 
         Builder host(String host) {
@@ -104,7 +106,7 @@ public class PostgresConnectionConfig {
             return this;
         }
 
-        Builder readOnly(Boolean readOnly) {
+        Builder readOnly(String readOnly) {
             this.readOnly = readOnly;
             return this;
         }

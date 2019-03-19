@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Phaser;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.appdynamics.extensions.postgres.util.Constants.DATABASES;
 import static com.appdynamics.extensions.postgres.util.Constants.DB_NAME;
@@ -43,6 +44,7 @@ public class PostgresMonitorTask implements AMonitorTaskRunnable {
     private final MetricWriteHelper metricWriteHelper;
     private final Map<String, ?> server;
     private final String serverName;
+    private final AtomicBoolean heart_beat;
 
     PostgresMonitorTask(MonitorContextConfiguration contextConfiguration, MetricWriteHelper metricWriteHelper,
                         Map<String, ?> server, String serverName) {
@@ -50,6 +52,7 @@ public class PostgresMonitorTask implements AMonitorTaskRunnable {
         this.metricWriteHelper = metricWriteHelper;
         this.server = server;
         this.serverName = serverName;
+        this.heart_beat = new AtomicBoolean();
     }
 
     @Override
@@ -59,7 +62,7 @@ public class PostgresMonitorTask implements AMonitorTaskRunnable {
 
     @Override
     public void run() {
-        LOGGER.debug("Start metric collection task for server {}", serverName);
+        LOGGER.info("Start metric collection task for server {}", serverName);
         try {
             List<Map<String, ?>> databaseTasks = (List<Map<String, ?>>) server.get(DATABASES);
             if (databaseTasks == null || databaseTasks.isEmpty()) {
@@ -74,6 +77,7 @@ public class PostgresMonitorTask implements AMonitorTaskRunnable {
     private void collectAndPublishMetric(List<Map<String, ?>> databaseTasks) throws ConnectionConfigException {
         final Phaser phaser = new Phaser();
         phaser.register();
+        LOGGER.info("Found {} databases under server {}", databaseTasks.size(), serverName);
         for (Map<String, ?> databaseTask : databaseTasks) {
             final String dbName = (String) databaseTask.get(DB_NAME);
             if (Strings.isNullOrEmpty(dbName)) {
@@ -83,7 +87,7 @@ public class PostgresMonitorTask implements AMonitorTaskRunnable {
                 PostgresConnectionConfig connectionConfig = PostgresConnectionConfigHelper.getConnectionConfig(dbName
                         , serverName, CryptoUtils.getPassword(contextConfiguration.getConfigYml()), server);
                 DatabaseTask task = new DatabaseTask(serverName, dbName, databaseTask, phaser, connectionConfig,
-                        contextConfiguration.getMetricPrefix(), metricWriteHelper);
+                        contextConfiguration.getMetricPrefix(), metricWriteHelper, heart_beat);
                 contextConfiguration.getContext().getExecutorService().execute("Postgres db task - " + dbName, task);
             }
         }

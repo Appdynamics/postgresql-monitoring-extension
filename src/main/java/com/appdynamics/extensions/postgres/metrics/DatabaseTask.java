@@ -31,6 +31,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
 import java.util.concurrent.Phaser;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.appdynamics.extensions.postgres.util.Constants.*;
 
@@ -47,9 +48,11 @@ public class DatabaseTask implements Runnable {
     private final String metricPrefix;
     private final PostgresConnectionConfig connConfig;
     private final MetricWriteHelper metricWriteHelper;
+    private final AtomicBoolean heart_beat;
 
     public DatabaseTask(String serverName, String dbName, Map<String, ?> databaseTask, Phaser phaser,
-                        PostgresConnectionConfig connConfig, String metricPrefix, MetricWriteHelper metricWriteHelper) {
+                        PostgresConnectionConfig connConfig, String metricPrefix, MetricWriteHelper metricWriteHelper
+            , AtomicBoolean heart_beat) {
         this.serverName = serverName;
         this.dbName = dbName;
         this.databaseTask = databaseTask;
@@ -57,18 +60,21 @@ public class DatabaseTask implements Runnable {
         this.connConfig = connConfig;
         this.metricPrefix = metricPrefix;
         this.metricWriteHelper = metricWriteHelper;
+        this.heart_beat = heart_beat;
         phaser.register();
     }
 
     @Override
     public void run() {
-        LOGGER.debug("Collecting metrics for database {}, server {}", dbName, serverName);
+        LOGGER.info("Collecting metrics for database {}, server {}", dbName, serverName);
+        LOGGER.debug("Connection URL for database {} server {} is {}", dbName, serverName, connConfig.getUrl());
         List<Map<String, ?>> queries = (List<Map<String, ?>>) databaseTask.get(QUERIES);
         if (queries == null || queries.size() == 0) {
             LOGGER.debug("No queries under database {} server {}.", dbName, serverName);
         } else {
             metricWriteHelper.transformAndPrintMetrics(getMetricsForQueries(queries));
         }
+        LOGGER.info("Done collecting metrics for database {}, server {}", dbName, serverName);
         phaser.arriveAndDeregister();
     }
 
@@ -96,25 +102,40 @@ public class DatabaseTask implements Runnable {
     }
 
     private List<Metric> executeQuery(String queryStmt, Boolean isServerLvlQuery, String name, List<Column> cols) {
+        LOGGER.debug("Starting metrics collection for query {}", queryStmt);
         List<Metric> metrics = new ArrayList<>();
         try (Connection conn = ConnectionUtils.getConnection(DRIVER, connConfig.getUrl(),
                 connConfig.getProps())) {
-            try (Statement stmt = conn.createStatement()) {
-                try (ResultSet rs = stmt.executeQuery(queryStmt)) {
-                    if (rs != null) {
-                        metrics = collectMetricsFromResultSet(isServerLvlQuery, name, rs, cols);
-                    }
-                    LOGGER.debug("Executed query {} database {} server {}. Size of metrics {}", name, dbName,
-                            serverName, metrics.size());
+            // TODO timeout is one second I think this should be ok.lmk
+            // TODO could have moved this logic to before looping thru queries but in that case I would have created
+            //  extra connection for checking heart beat. I thought this approach is also ok since this will be
+            //  checked once and only once
+            if (conn.isValid(1)) {
+                if (heart_beat.compareAndSet(false, true)) {
+                    LOGGER.debug("Connection to database {} server {} is valid", dbName, serverName);
+                    Metric heart_beat_metric = new Metric(HEART_BEAT, "1", metricPrefix, serverName, HEART_BEAT);
+                    metrics.add(heart_beat_metric);
                 }
+                try (Statement stmt = conn.createStatement()) {
+                    try (ResultSet rs = stmt.executeQuery(queryStmt)) {
+                        if (rs != null) {
+                            metrics.addAll(collectMetricsFromResultSet(isServerLvlQuery, name, rs, cols));
+                        }
+                        LOGGER.debug("Executed query {} database {} server {}. Size of metrics {}", name, dbName,
+                                serverName, metrics.size());
+                    }
+                }
+            } else {
+                LOGGER.debug("Connection to database {} server {} is not valid", dbName, serverName);
             }
         } catch (ClassNotFoundException cce) {
             LOGGER.error("ClassNotFoundException check drivers", cce);
         } catch (SQLException se) {
             LOGGER.error("Error executing SQL query", se);
         } catch (Exception e) {
-            LOGGER.error("Unforeseen exception", e);
+            LOGGER.error("Unforeseen exception when executing the query", e);
         }
+        LOGGER.debug("Finished metrics collection for query {}", queryStmt);
         return metrics;
     }
 
@@ -134,10 +155,16 @@ public class DatabaseTask implements Runnable {
             Map<Column, String> metricValues = new HashMap<>();
             // first check get all tokens and values from ResultSet
             for (Column col : cols) {
-                if (col.getType().equalsIgnoreCase("metricPath")) {
-                    metricTokens.add(rs.getString(col.getName()));
-                } else if (col.getType().equalsIgnoreCase("metricValue")) {
-                    metricValues.put(col, rs.getString(col.getName()));
+                String rs_get_string = rs.getString(col.getName());
+                if (rs_get_string == null) {
+                    LOGGER.debug("Null value encountered when fetching string value form result set for column name " +
+                            "{}, will not report this as a metric", col.getName());
+                } else {
+                    if (col.getType().equalsIgnoreCase("metricPath")) {
+                        metricTokens.add(rs.getString(col.getName()));
+                    } else if (col.getType().equalsIgnoreCase("metricValue")) {
+                        metricValues.put(col, rs.getString(col.getName()));
+                    }
                 }
             }
             // once all tokens are obtained from ResultSet, create metrics
@@ -152,8 +179,12 @@ public class DatabaseTask implements Runnable {
                 metricTokens.removeLast();
                 Metric metric;
                 if (metricProps == null || metricProps.size() == 0) {
+                    LOGGER.debug("Creating metric with default properties name {}, value {}, prefix {}, tokens {}",
+                            metricName, metricValue, metricPrefix, tokens);
                     metric = new Metric(metricName, metricValue, metricPrefix, tokens);
                 } else {
+                    LOGGER.debug("Creating metric name {}, value {}, prefix {}, tokens {}, properties {}", metricName
+                            , metricValue, metricPrefix, tokens, metricProps);
                     metric = new Metric(metricName, metricValue, metricProps, metricPrefix, tokens);
                 }
                 metrics.add(metric);

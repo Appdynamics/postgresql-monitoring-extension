@@ -51,7 +51,7 @@ public class PostgresConnectionConfigHelper {
                 DEFAULT_APPLICATION_NAME : (String) server.get(APPLICATION_NAME);
         Map<String, String> optionalConnProps = (Map<String, String>) server.get(OPTIONAL_CONNECTION_PROPERTIES);
         return new PostgresConnectionConfig.Builder().host(host).useIPv6(useIpv6).port(port).database(dbName).user
-                (user).password(password).applicationName(applicationName).readOnly(Boolean.TRUE).properties
+                (user).password(password).applicationName(applicationName).readOnly("true").properties
                 (optionalConnProps).build();
     }
 }

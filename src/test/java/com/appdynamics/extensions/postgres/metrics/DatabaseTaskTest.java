@@ -44,6 +44,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Phaser;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.appdynamics.extensions.postgres.util.Constants.DATABASES;
 import static com.appdynamics.extensions.postgres.util.Constants.SERVERS;
@@ -89,6 +90,7 @@ public class DatabaseTaskTest {
         mockStatic(ConnectionUtils.class);
         Connection conn = mock(Connection.class);
         when(ConnectionUtils.getConnection(anyString(), anyString(), any())).thenReturn(conn);
+        when(conn.isValid(anyInt())).thenReturn(true);
         Statement stmt = mock(Statement.class);
         when(conn.createStatement()).thenReturn(stmt);
         ResultSet rs = mock(ResultSet.class);
@@ -105,20 +107,20 @@ public class DatabaseTaskTest {
         Map<String, ?> dbtask =
                 ((List<Map<String, ?>>) ((List<Map<String, ?>>) conf.get(SERVERS)).get(0).get(DATABASES)).get(0);
         DatabaseTask task = new DatabaseTask("Local", "Test DB", dbtask, phaser, connectionConfig, metricPrefix,
-                metricWriteHelper);
+                metricWriteHelper, new AtomicBoolean());
         task.run();
         verify(metricWriteHelper).transformAndPrintMetrics(pathCaptor.capture());
         List<Metric> metrics = (List<Metric>) pathCaptor.getValue();
         metrics.sort(Comparator.comparing(Metric::getMetricName));
-        // ConnectionUtils);
-        assertThat(metrics.size(), is(2));
-        assertThat(metrics.get(0).getMetricPath(), equalTo("Custom Metrics|Postgres|Local|Test DB|dbSize"));
-        assertThat(metrics.get(0).getMetricValue(), is("2048"));
-        assertThat(metrics.get(0).getMetricProperties().getAlias(), equalTo("Database Size (KB)"));
-        assertThat(metrics.get(0).getMetricProperties().getMultiplier(), is(new BigDecimal(0.0009765625f)));
-        assertThat(metrics.get(1).getMetricPath(), equalTo("Custom Metrics|Postgres|Local|Test DB|numbackends"));
-        assertThat(metrics.get(1).getMetricValue(), is("20"));
-        assertThat(metrics.get(1).getMetricProperties().getAlias(), equalTo("Number of connections"));
+        assertThat(metrics.size(), is(3));
+        assertThat(metrics.get(0).getMetricPath(), equalTo("Custom Metrics|Postgres|Local|HEART_BEAT"));
+        assertThat(metrics.get(1).getMetricPath(), equalTo("Custom Metrics|Postgres|Local|Test DB|dbSize"));
+        assertThat(metrics.get(1).getMetricValue(), is("2048"));
+        assertThat(metrics.get(1).getMetricProperties().getAlias(), equalTo("Database Size (KB)"));
+        assertThat(metrics.get(1).getMetricProperties().getMultiplier(), is(new BigDecimal(0.0009765625f)));
+        assertThat(metrics.get(2).getMetricPath(), equalTo("Custom Metrics|Postgres|Local|Test DB|numbackends"));
+        assertThat(metrics.get(2).getMetricValue(), is("20"));
+        assertThat(metrics.get(2).getMetricProperties().getAlias(), equalTo("Number of connections"));
     }
 
     @After

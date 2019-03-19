@@ -15,7 +15,6 @@ servers:
     user: "pradeep.nair"
     password: ""
     encryptedPassword: ""
-#    useSsl: "false"
 #    optionalConnectionProperties:
 #      - connectTimeout: 100
 #        tcpKeepAlive: true
@@ -172,7 +171,7 @@ servers:
             serverLvlQuery: "false"
             # add where clause to the query to filter tables
             queryStmt: "SELECT relname, seq_scan, seq_tup_read, idx_scan, idx_tup_fetch, n_tup_ins, n_tup_upd, n_tup_del,
-                               n_live_tup, n_dead_tup, vacuum_count, autovacuum_count
+                               n_live_tup, n_dead_tup, vacuum_count, autovacuum_count, pg_catalog.pg_relation_size(relid) AS tSize
                         FROM pg_stat_user_tables"
             columns:
               - name: "relname"
@@ -262,6 +261,14 @@ servers:
                 properties:
                   alias: "Number of Auto Vacuums Performed"
                   delta: "true"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "tSize"
+                type: "metricValue"
+                properties:
+                  alias: "Table Size (KB)"
+                  multiplier: 0.0009765625
                   aggregationType: "OBSERVATION"
                   timeRollUpType: "AVERAGE"
                   clusterRollUpType: "INDIVIDUAL"

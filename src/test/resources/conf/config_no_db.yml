@@ -15,7 +15,6 @@ servers:
     user: "pradeep.nair"
     password: ""
     encryptedPassword: ""
-#    useSsl: "false"
 #    optionalConnectionProperties:
 #      - connectTimeout: 100
 #        tcpKeepAlive: true

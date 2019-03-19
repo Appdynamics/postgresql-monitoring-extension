@@ -30,7 +30,6 @@ public class Constants {
     public static final String PORT = "port";
     public static final String USER = "user";
     public static final String PASSWORD = "password";
-    public static final String USE_SSL = "useSsl";
     public static final String OPTIONAL_CONNECTION_PROPERTIES = "optionalConnectionProperties";
     public static final String DATABASES = "databases";
     public static final String DB_NAME = "dbName";
@@ -47,4 +46,5 @@ public class Constants {
     public static final String PROTOCOL = "jdbc:postgresql:";
     public static final String DRIVER = "org.postgresql.Driver";
     public static final String DEFAULT_APPLICATION_NAME = "AppDynamicsPSQLExtension";
+    public static final String HEART_BEAT = "HEART_BEAT";
 }
