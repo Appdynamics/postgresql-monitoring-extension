@@ -106,8 +106,6 @@ public class DatabaseTask implements Runnable {
                     }
                     LOGGER.debug("Executed query {} database {} server {}. Size of metrics {}", name, dbName,
                             serverName, metrics.size());
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
             }
         } catch (ClassNotFoundException cce) {

@@ -20,7 +20,7 @@ servers:
 #      - connectTimeout: 100
 #        tcpKeepAlive: true
     databases:
-      - dbName: "test"
+      - dbName: "pradeep.nair"
         queries:
           # server level stats, run this query under one database for one server. Add where clauses to query to filter databases
           - name: "Database Stats"
@@ -168,11 +168,11 @@ servers:
                   timeRollUpType: "AVERAGE"
                   clusterRollUpType: "INDIVIDUAL"
 
-          - name: "bg_writer stats"
+          - name: "Table Stats"
             serverLvlQuery: "false"
             # add where clause to the query to filter tables
-            queryStmt: "SELECT relname, seq_scan, seq_tup_read, idx_scan, idx_tup_fetched, n_tup_ins, n_tup_upd, n_tup_del,
-                               n_live_tup, n_dead_tup, vacuum_count, auto_vacuum
+            queryStmt: "SELECT relname, seq_scan, seq_tup_read, idx_scan, idx_tup_fetch, n_tup_ins, n_tup_upd, n_tup_del,
+                               n_live_tup, n_dead_tup, vacuum_count, autovacuum_count
                         FROM pg_stat_user_tables"
             columns:
               - name: "relname"
@@ -270,6 +270,15 @@ encryptionKey: ""
 
 # numberOfThreads = for each server (1 + number_of(databases)). For example if you have 1 server and 2 databases then numberOfThreads = 1 + 2 = 3
 numberOfThreads: 2
+
+customDashboard:
+  enabled: false
+  dashboardName: "Postgres Monitor Dashboard"
+  sslCertCheckEnabled: true
+  # Update the path to the dashboard file.
+  pathToSIMDashboard:
+  pathToNormalDashboard:
+  periodicDashboardCheckInSeconds: 300
 
 #taskSchedule:
 #  numberOfThreads: 1
