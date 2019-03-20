@@ -32,8 +32,7 @@ import java.util.Map;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.appdynamics.extensions.postgres.util.Constants.DATABASES;
-import static com.appdynamics.extensions.postgres.util.Constants.DB_NAME;
+import static com.appdynamics.extensions.postgres.util.Constants.*;
 
 /**
  * @author pradeep.nair
@@ -84,8 +83,9 @@ public class PostgresMonitorTask implements AMonitorTaskRunnable {
                 LOGGER.debug("Please provide database name for server {}. Skipping entry...", serverName);
             } else {
 //                PostgresConnectionConfig connectionConfig = getConnectionConfig(dbName);
+                final String encryptionKey = (String) contextConfiguration.getConfigYml().get(ENCRYPTION_KEY);
                 PostgresConnectionConfig connectionConfig = PostgresConnectionConfigHelper.getConnectionConfig(dbName
-                        , serverName, CryptoUtils.getPassword(contextConfiguration.getConfigYml()), server);
+                        , serverName, CryptoUtils.getPassword(server, encryptionKey), server);
                 DatabaseTask task = new DatabaseTask(serverName, dbName, databaseTask, phaser, connectionConfig,
                         contextConfiguration.getMetricPrefix(), metricWriteHelper, heart_beat);
                 contextConfiguration.getContext().getExecutorService().execute("Postgres db task - " + dbName, task);

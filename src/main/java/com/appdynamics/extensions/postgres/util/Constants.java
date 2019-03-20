@@ -30,6 +30,7 @@ public class Constants {
     public static final String PORT = "port";
     public static final String USER = "user";
     public static final String PASSWORD = "password";
+    public static final String ENCRYPTION_KEY = "encryptionKey";
     public static final String OPTIONAL_CONNECTION_PROPERTIES = "optionalConnectionProperties";
     public static final String DATABASES = "databases";
     public static final String DB_NAME = "dbName";
