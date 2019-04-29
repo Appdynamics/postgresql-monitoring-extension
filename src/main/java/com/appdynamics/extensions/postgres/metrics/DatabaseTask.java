@@ -48,7 +48,7 @@ public class DatabaseTask implements Runnable {
     private final String metricPrefix;
     private final PostgresConnectionConfig connConfig;
     private final MetricWriteHelper metricWriteHelper;
-    private final AtomicBoolean heart_beat;
+    private final AtomicBoolean heart_beat; //todo: initialize to zero
 
     public DatabaseTask(String serverName, String dbName, Map<String, ?> databaseTask, Phaser phaser,
                         PostgresConnectionConfig connConfig, String metricPrefix, MetricWriteHelper metricWriteHelper
@@ -106,10 +106,8 @@ public class DatabaseTask implements Runnable {
         List<Metric> metrics = new ArrayList<>();
         try (Connection conn = ConnectionUtils.getConnection(DRIVER, connConfig.getUrl(),
                 connConfig.getProps())) {
-            // TODO timeout is one second I think this should be ok.lmk
-            // TODO could have moved this logic to before looping thru queries but in that case I would have created
-            //  extra connection for checking heart beat. I thought this approach is also ok since this will be
-            //  checked once and only once
+            // TODO  this looks ok
+
             if (conn.isValid(1)) {
                 if (heart_beat.compareAndSet(false, true)) {
                     LOGGER.debug("Connection to database {} server {} is valid", dbName, serverName);
@@ -126,6 +124,7 @@ public class DatabaseTask implements Runnable {
                     }
                 }
             } else {
+                //todo: print heartbeat=0 as a metric
                 LOGGER.debug("Connection to database {} server {} is not valid", dbName, serverName);
             }
         } catch (ClassNotFoundException cce) {
@@ -137,6 +136,8 @@ public class DatabaseTask implements Runnable {
         }
         LOGGER.debug("Finished metrics collection for query {}", queryStmt);
         return metrics;
+
+        //TODO: Add connection.close() to avoid memory leaks
     }
 
     private List<Metric> collectMetricsFromResultSet(Boolean isServerLvlQuery, String name, ResultSet rs,
@@ -160,7 +161,7 @@ public class DatabaseTask implements Runnable {
                     LOGGER.debug("Null value encountered when fetching string value form result set for column name " +
                             "{}, will not report this as a metric", col.getName());
                 } else {
-                    if (col.getType().equalsIgnoreCase("metricPath")) {
+                    if (col.getType().equalsIgnoreCase("metricPath")) { //todo: add logging for metricToken & metricValues
                         metricTokens.add(rs.getString(col.getName()));
                     } else if (col.getType().equalsIgnoreCase("metricValue")) {
                         metricValues.put(col, rs.getString(col.getName()));

@@ -45,6 +45,7 @@ public class PostgresMonitor extends ABaseMonitor {
 
     @Override
     protected void doRun(TasksExecutionServiceProvider tasksExecutionServiceProvider) {
+        //TODO:Can use the getServers() method
         for (Map<String, ?> server : (List<Map<String, ?>>) getContextConfiguration().getConfigYml().get(SERVERS)) {
             AssertUtils.assertNotNull(server.get(DISPLAY_NAME), "The displayName section for the database " +
                     "server cannot be null");

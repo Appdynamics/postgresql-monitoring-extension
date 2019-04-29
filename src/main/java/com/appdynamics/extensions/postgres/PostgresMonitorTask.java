@@ -50,8 +50,8 @@ public class PostgresMonitorTask implements AMonitorTaskRunnable {
         this.contextConfiguration = contextConfiguration;
         this.metricWriteHelper = metricWriteHelper;
         this.server = server;
-        this.serverName = serverName;
-        this.heart_beat = new AtomicBoolean();
+        this.serverName = serverName; //TODO:  we can get the server name from the server map
+        this.heart_beat = new AtomicBoolean(); //TODO: new AtomicBoolean(false);
     }
 
     @Override
@@ -86,6 +86,9 @@ public class PostgresMonitorTask implements AMonitorTaskRunnable {
                 final String encryptionKey = (String) contextConfiguration.getConfigYml().get(ENCRYPTION_KEY);
                 PostgresConnectionConfig connectionConfig = PostgresConnectionConfigHelper.getConnectionConfig(dbName
                         , serverName, CryptoUtils.getPassword(server, encryptionKey), server);
+                //TODO: can this be re-written as :
+                // TODO: getConnectionConfig(dbName,server); and let getPassword and serverName be extracted in the Helper class?
+                //
                 DatabaseTask task = new DatabaseTask(serverName, dbName, databaseTask, phaser, connectionConfig,
                         contextConfiguration.getMetricPrefix(), metricWriteHelper, heart_beat);
                 contextConfiguration.getContext().getExecutorService().execute("Postgres db task - " + dbName, task);

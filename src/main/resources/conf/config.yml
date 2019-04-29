@@ -1,10 +1,11 @@
----
+### TODO: please look up AWS Redshift extension for SIm and non-SIM metricPrefix.
 # This will create this metric in all the tiers, under this path.
 metricPrefix: "Custom Metrics|PostgreSQL"
 
 # This will create it in specific Tier aka Component. Replace <COMPONENT_ID>.
 #metricPrefix: "Server|Component:<ComponentID>|Custom Metrics|PostgreSQL"
 
+#TODO: is this something we have defined or does it exist in Postgres world?If we have defined it, then this needs more info
 ApplicationName: "AppDynamicsPSQLExtension"
 
 servers:
@@ -22,12 +23,16 @@ servers:
       - dbName: "pradeep.nair"
         queries:
           # server level stats, run this query under one database for one server. Add where clauses to query to filter databases
+          # TODO: please give example to filter using WHERE clause in here or in README
+          #TODO: do we need more info or link to any Postgres documentation about what queries are serverlevel and what queries are not serverlevel?
           - name: "Database Stats"
             serverLvlQuery: "true"
             queryStmt: "SELECT datname, numbackends, xact_commit, xact_rollback, blks_read, blks_hit, tup_returned,
                                tup_fetched, tup_inserted, tup_updated, tup_deleted, conflicts, temp_files, temp_bytes,
                                deadlocks, blk_read_time, blk_write_time, pg_catalog.pg_database_size(datname) AS dbSize
                         FROM pg_stat_database"
+                        #TODO:need more description for what column types exist - so that if the new metrics are added in future,
+                        # TODO: we should know what to put in the column type
             columns:
               - name: "datname"
                 type: "metricPath"
@@ -49,7 +54,7 @@ servers:
               - name: "xact_rollback"
                 type: "metricValue"
                 properties:
-                  alias: "Transactions Rollbacked"
+                  alias: "Transactions Rollbacked" #TODO: "Transactions Rolled Back" :)
                   delta: "true"
                   aggregationType: "OBSERVATION"
                   timeRollUpType: "AVERAGE"
@@ -268,16 +273,19 @@ servers:
                 type: "metricValue"
                 properties:
                   alias: "Table Size (KB)"
-                  multiplier: 0.0009765625
+                  multiplier: 0.0009765625 #TODO: what is the significance behind this multiplier?
                   aggregationType: "OBSERVATION"
                   timeRollUpType: "AVERAGE"
                   clusterRollUpType: "INDIVIDUAL"
 
+#TODO: we need some info to describe this section here on in README
 encryptionKey: ""
 
 # numberOfThreads = for each server (1 + number_of(databases)). For example if you have 1 server and 2 databases then numberOfThreads = 1 + 2 = 3
 numberOfThreads: 2
 
+#TODO: we need some info to describe this section
+#TODO: please add a sample dashboard.json
 customDashboard:
   enabled: false
   dashboardName: "Postgres Monitor Dashboard"
@@ -287,7 +295,9 @@ customDashboard:
   pathToNormalDashboard:
   periodicDashboardCheckInSeconds: 300
 
+#TODO : Plz add healthChecksEnabled, add description about what it means, default value etc.
+
+#TODO: we need some info to describe this section here on in README
 #taskSchedule:
 #  numberOfThreads: 1
 #  taskDelaySeconds: 300
-...

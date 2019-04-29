@@ -103,7 +103,7 @@ public class DatabaseTaskTest {
     }
 
     @Test
-    public void databaseTaskTest() throws SQLException, ClassNotFoundException {
+    public void databaseTaskTest() throws SQLException, ClassNotFoundException { //todo: rename tests of the form whenSomethingThenSomethingElse()
         Map<String, ?> dbtask =
                 ((List<Map<String, ?>>) ((List<Map<String, ?>>) conf.get(SERVERS)).get(0).get(DATABASES)).get(0);
         DatabaseTask task = new DatabaseTask("Local", "Test DB", dbtask, phaser, connectionConfig, metricPrefix,
