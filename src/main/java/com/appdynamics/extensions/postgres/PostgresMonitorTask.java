@@ -19,14 +19,16 @@ import com.appdynamics.extensions.AMonitorTaskRunnable;
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
-import com.appdynamics.extensions.postgres.connection.ConnectionConfigException;
+import com.appdynamics.extensions.metrics.Metric;
 import com.appdynamics.extensions.postgres.connection.PostgresConnectionConfig;
 import com.appdynamics.extensions.postgres.connection.PostgresConnectionConfigHelper;
 import com.appdynamics.extensions.postgres.metrics.DatabaseTask;
+import com.appdynamics.extensions.util.AssertUtils;
 import com.appdynamics.extensions.util.CryptoUtils;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Phaser;
@@ -50,30 +52,35 @@ public class PostgresMonitorTask implements AMonitorTaskRunnable {
         this.contextConfiguration = contextConfiguration;
         this.metricWriteHelper = metricWriteHelper;
         this.server = server;
-        this.serverName = serverName; //TODO:  we can get the server name from the server map
-        this.heart_beat = new AtomicBoolean(); //TODO: new AtomicBoolean(false);
+        this.serverName = serverName; //TODO:  we can get the server name from the server map, I did this so that it
+        // is clear from the constructor call itself that serverName is used
+        this.heart_beat = new AtomicBoolean(); //TODO: new AtomicBoolean(false); @vishaka default constructor will
+        // initialize it to false
     }
 
     @Override
     public void onTaskComplete() {
+        List<Metric> metrics = new ArrayList<>();
+        String metricName = "HEART_BEAT";
+        String metricValue = heart_beat.get() ? "1" : "0";
+        Metric metric = new Metric(metricName, metricValue, contextConfiguration.getMetricPrefix(), serverName, metricName);
+        metrics.add(metric);
+        metricWriteHelper.transformAndPrintMetrics(metrics);
         LOGGER.debug("End metric collection task for database server {}", serverName);
     }
 
     @Override
     public void run() {
         LOGGER.info("Start metric collection task for server {}", serverName);
-        try {
-            List<Map<String, ?>> databaseTasks = (List<Map<String, ?>>) server.get(DATABASES);
-            if (databaseTasks == null || databaseTasks.isEmpty()) {
-                throw new ConnectionConfigException("Atleast one database is required for server " + serverName);
-            }
-            collectAndPublishMetric(databaseTasks);
-        } catch (ConnectionConfigException cce) {
-            LOGGER.error("Exception while reading config", cce);
+        List<Map<String, ?>> databaseTasks = (List<Map<String, ?>>) server.get(DATABASES);
+        if (databaseTasks.isEmpty()) {
+            databaseTasks = null;
         }
+        AssertUtils.assertNotNull(databaseTasks, "Atleast one database is required for server " + serverName);
+        collectAndPublishMetric(databaseTasks);
     }
 
-    private void collectAndPublishMetric(List<Map<String, ?>> databaseTasks) throws ConnectionConfigException {
+    private void collectAndPublishMetric(List<Map<String, ?>> databaseTasks) {
         final Phaser phaser = new Phaser();
         phaser.register();
         LOGGER.info("Found {} databases under server {}", databaseTasks.size(), serverName);
@@ -82,13 +89,14 @@ public class PostgresMonitorTask implements AMonitorTaskRunnable {
             if (Strings.isNullOrEmpty(dbName)) {
                 LOGGER.debug("Please provide database name for server {}. Skipping entry...", serverName);
             } else {
-//                PostgresConnectionConfig connectionConfig = getConnectionConfig(dbName);
                 final String encryptionKey = (String) contextConfiguration.getConfigYml().get(ENCRYPTION_KEY);
                 PostgresConnectionConfig connectionConfig = PostgresConnectionConfigHelper.getConnectionConfig(dbName
                         , serverName, CryptoUtils.getPassword(server, encryptionKey), server);
                 //TODO: can this be re-written as :
-                // TODO: getConnectionConfig(dbName,server); and let getPassword and serverName be extracted in the Helper class?
-                //
+                // TODO: getConnectionConfig(dbName,server); and let getPassword and serverName be extracted in the
+                //  Helper class? @vishaka server won't have encrptionKey at this time I will have to pass encrptionKey
+                //  or add it in server map, I don't see any benefits from doing so can you clarify what difference this
+                //  will make
                 DatabaseTask task = new DatabaseTask(serverName, dbName, databaseTask, phaser, connectionConfig,
                         contextConfiguration.getMetricPrefix(), metricWriteHelper, heart_beat);
                 contextConfiguration.getContext().getExecutorService().execute("Postgres db task - " + dbName, task);

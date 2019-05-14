@@ -15,6 +15,7 @@
 
 package com.appdynamics.extensions.postgres.connection;
 
+import com.appdynamics.extensions.util.AssertUtils;
 import com.google.common.base.Strings;
 
 import java.util.Map;
@@ -27,25 +28,13 @@ import static com.appdynamics.extensions.postgres.util.Constants.*;
 public class PostgresConnectionConfigHelper {
 
     public static PostgresConnectionConfig getConnectionConfig(String dbName, String serverName, final String password,
-                                                               Map<String, ?> server) throws ConnectionConfigException {
+                                                               Map<String, ?> server) {
         final String host = (String) server.get(HOST);
         final String port = (String) server.get(PORT);
         final String user = (String) server.get(USER);
-        boolean err = false;
-        String msg = null;
-        if (Strings.isNullOrEmpty(host)) {
-            err = true;
-            msg = "Please provide a host to connect in config.yml for server " + serverName;
-        } else if (Strings.isNullOrEmpty(port)) {
-            err = true;
-            msg = "Please provide a port to connect in config.yml for server " + serverName;
-        } else if (Strings.isNullOrEmpty(user)) {
-            err = true;
-            msg = "Please provide a user to connect in config.yml for server " + serverName;
-        }
-        if (err) {
-            throw new ConnectionConfigException(msg);
-        }
+        AssertUtils.assertNotNull(host, "Please provide a host to connect in config.yml for server " + serverName);
+        AssertUtils.assertNotNull(host, "Please provide a port to connect in config.yml for server " + serverName);
+        AssertUtils.assertNotNull(host, "Please provide a user to connect in config.yml for server " + serverName);
         final Boolean useIpv6 = Boolean.valueOf((String) server.get(USE_IPV6));
         final String applicationName = Strings.isNullOrEmpty((String) server.get(APPLICATION_NAME)) ?
                 DEFAULT_APPLICATION_NAME : (String) server.get(APPLICATION_NAME);

@@ -48,7 +48,8 @@ public class DatabaseTask implements Runnable {
     private final String metricPrefix;
     private final PostgresConnectionConfig connConfig;
     private final MetricWriteHelper metricWriteHelper;
-    private final AtomicBoolean heart_beat; //todo: initialize to zero
+    private final AtomicBoolean heart_beat; //todo: initialize to zero @vishaka - why? heart_beat is false when
+    // initialized
 
     public DatabaseTask(String serverName, String dbName, Map<String, ?> databaseTask, Phaser phaser,
                         PostgresConnectionConfig connConfig, String metricPrefix, MetricWriteHelper metricWriteHelper
@@ -106,14 +107,8 @@ public class DatabaseTask implements Runnable {
         List<Metric> metrics = new ArrayList<>();
         try (Connection conn = ConnectionUtils.getConnection(DRIVER, connConfig.getUrl(),
                 connConfig.getProps())) {
-            // TODO  this looks ok
-
             if (conn.isValid(1)) {
-                if (heart_beat.compareAndSet(false, true)) {
-                    LOGGER.debug("Connection to database {} server {} is valid", dbName, serverName);
-                    Metric heart_beat_metric = new Metric(HEART_BEAT, "1", metricPrefix, serverName, HEART_BEAT);
-                    metrics.add(heart_beat_metric);
-                }
+                heart_beat.compareAndSet(false, true);
                 try (Statement stmt = conn.createStatement()) {
                     try (ResultSet rs = stmt.executeQuery(queryStmt)) {
                         if (rs != null) {
@@ -137,7 +132,7 @@ public class DatabaseTask implements Runnable {
         LOGGER.debug("Finished metrics collection for query {}", queryStmt);
         return metrics;
 
-        //TODO: Add connection.close() to avoid memory leaks
+        //TODO: Add connection.close() to avoid memory leaks @vishaka I am using try with resources, connection will be autocolsed
     }
 
     private List<Metric> collectMetricsFromResultSet(Boolean isServerLvlQuery, String name, ResultSet rs,
@@ -156,15 +151,19 @@ public class DatabaseTask implements Runnable {
             Map<Column, String> metricValues = new HashMap<>();
             // first check get all tokens and values from ResultSet
             for (Column col : cols) {
+                LOGGER.debug("Config file column name {} and type {}", col.getName(), col.getType());
                 String rs_get_string = rs.getString(col.getName());
+                LOGGER.debug("");
                 if (rs_get_string == null) {
                     LOGGER.debug("Null value encountered when fetching string value form result set for column name " +
                             "{}, will not report this as a metric", col.getName());
                 } else {
-                    if (col.getType().equalsIgnoreCase("metricPath")) { //todo: add logging for metricToken & metricValues
-                        metricTokens.add(rs.getString(col.getName()));
+                    LOGGER.debug("Column name {}, Column Type {}, Value from query output {}", col.getName(),
+                            col.getType(), rs_get_string);
+                    if (col.getType().equalsIgnoreCase("metricPath")) {
+                        metricTokens.add(rs_get_string);
                     } else if (col.getType().equalsIgnoreCase("metricValue")) {
-                        metricValues.put(col, rs.getString(col.getName()));
+                        metricValues.put(col, rs_get_string);
                     }
                 }
             }

@@ -33,7 +33,7 @@ import static org.junit.Assert.assertThat;
 public class PostgresConnectionConfigTest {
 
     @Test
-    public void postgresConnectionConfigTest() throws ConnectionConfigException {
+    public void postgresConnectionConfigTest() {
         Map<String, ?> conf = YmlReader.readFromFileAsMap(new File("src/test/resources/conf/config.yml"));
         List<Map<String, ?>> servers = (List<Map<String, ?>>) conf.get(SERVERS);
         PostgresConnectionConfig connectionConfig = PostgresConnectionConfigHelper.getConnectionConfig("database",

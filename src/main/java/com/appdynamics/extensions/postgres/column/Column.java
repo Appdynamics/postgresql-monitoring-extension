@@ -42,7 +42,7 @@ public class Column {
         return properties;
     }
 
-    public void setProperties(Map properties) {
+    public void setProperties(Map<String, ?> properties) {
         this.properties = properties;
     }
 }

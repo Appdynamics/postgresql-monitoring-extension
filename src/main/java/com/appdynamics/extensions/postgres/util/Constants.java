@@ -21,7 +21,6 @@ package com.appdynamics.extensions.postgres.util;
  */
 public class Constants {
     public static final String DEFAULT_METRIC_PREFIX = "Custom Metrics|PostgreSQL";
-    public static final String DEFAULT_METRIC_SEPARATOR = "|";
     public static final String MONITOR_NAME = "PostgresMonitor";
     public static final String SERVERS = "servers";
     public static final String DISPLAY_NAME = "displayName";

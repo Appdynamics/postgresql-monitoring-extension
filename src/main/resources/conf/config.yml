@@ -1,11 +1,11 @@
-### TODO: please look up AWS Redshift extension for SIm and non-SIM metricPrefix.
-# This will create this metric in all the tiers, under this path.
+# Use this only if SIM is enabled
 metricPrefix: "Custom Metrics|PostgreSQL"
 
-# This will create it in specific Tier aka Component. Replace <COMPONENT_ID>.
+#To find the <COMPONENT_ID> in your environment,
+#please follow the screenshot https://docs.appdynamics.com/display/PRO42/Build+a+Monitoring+Extension+Using+Java
 #metricPrefix: "Server|Component:<ComponentID>|Custom Metrics|PostgreSQL"
 
-#TODO: is this something we have defined or does it exist in Postgres world?If we have defined it, then this needs more info
+# Will be used as a connections property so that activity from this extension can be uniquely identified in pg_stat_activity
 ApplicationName: "AppDynamicsPSQLExtension"
 
 servers:
@@ -13,26 +13,23 @@ servers:
     host: "127.0.0.1"
     useIpv6: "false"
     port: "5432"
-    user: "pradeep.nair"
+    user: ""
     password: ""
     encryptedPassword: ""
 #    optionalConnectionProperties:
-#      - connectTimeout: 100
-#        tcpKeepAlive: true
+#      connectTimeout: 100
+#      tcpKeepAlive: true
     databases:
-      - dbName: "pradeep.nair"
+      - dbName: "Test"
         queries:
           # server level stats, run this query under one database for one server. Add where clauses to query to filter databases
-          # TODO: please give example to filter using WHERE clause in here or in README
-          #TODO: do we need more info or link to any Postgres documentation about what queries are serverlevel and what queries are not serverlevel?
           - name: "Database Stats"
             serverLvlQuery: "true"
             queryStmt: "SELECT datname, numbackends, xact_commit, xact_rollback, blks_read, blks_hit, tup_returned,
                                tup_fetched, tup_inserted, tup_updated, tup_deleted, conflicts, temp_files, temp_bytes,
                                deadlocks, blk_read_time, blk_write_time, pg_catalog.pg_database_size(datname) AS dbSize
                         FROM pg_stat_database"
-                        #TODO:need more description for what column types exist - so that if the new metrics are added in future,
-                        # TODO: we should know what to put in the column type
+            # the columns are the metrics to be extracted
             columns:
               - name: "datname"
                 type: "metricPath"
@@ -54,7 +51,7 @@ servers:
               - name: "xact_rollback"
                 type: "metricValue"
                 properties:
-                  alias: "Transactions Rollbacked" #TODO: "Transactions Rolled Back" :)
+                  alias: "Transactions Rolled back"
                   delta: "true"
                   aggregationType: "OBSERVATION"
                   timeRollUpType: "AVERAGE"
@@ -167,7 +164,7 @@ servers:
                 type: "metricValue"
                 properties:
                   alias: "Database Size (KB)"
-                  multiplier: 0.0009765625
+                  multiplier: 0.0009765625 # = (1 / 1024) convert bytes to kB
                   aggregationType: "OBSERVATION"
                   timeRollUpType: "AVERAGE"
                   clusterRollUpType: "INDIVIDUAL"
@@ -273,19 +270,22 @@ servers:
                 type: "metricValue"
                 properties:
                   alias: "Table Size (KB)"
-                  multiplier: 0.0009765625 #TODO: what is the significance behind this multiplier?
+                  multiplier: 0.0009765625 # = (1 / 1024) convert bytes to kB
                   aggregationType: "OBSERVATION"
                   timeRollUpType: "AVERAGE"
                   clusterRollUpType: "INDIVIDUAL"
 
-#TODO: we need some info to describe this section here on in README
 encryptionKey: ""
 
 # numberOfThreads = for each server (1 + number_of(databases)). For example if you have 1 server and 2 databases then numberOfThreads = 1 + 2 = 3
-numberOfThreads: 2
+numberOfThreads: 3
 
-#TODO: we need some info to describe this section
-#TODO: please add a sample dashboard.json
+#metricPathReplacements:
+#  - replace: "&"
+#    replaceWith: ""
+#  - replace: "percent"
+#    replaceWith: "%"
+
 customDashboard:
   enabled: false
   dashboardName: "Postgres Monitor Dashboard"
@@ -295,9 +295,23 @@ customDashboard:
   pathToNormalDashboard:
   periodicDashboardCheckInSeconds: 300
 
-#TODO : Plz add healthChecksEnabled, add description about what it means, default value etc.
+# If any of the following fields are not set, the values of the specific fields are set from the system properties of the corresponding fields as specified in the comments.
+# If the system properties are not set for the field, then the data is retrieved from machine agent configFile. Please refer to ControllerInfoFactory for more details.
+controllerInfo:
+  controllerHost: "" # -Dappdynamics.controller.hostName
+  controllerPort: 8090 # -Dappdynamics.controller.port
+  controllerSslEnabled: false # -Dappdynamics.controller.ssl.enabled
+  enableOrchestration: false # N/A
+  uniqueHostId: "" # -Dappdynamics.agent.uniqueHostId
+  username: "" # -Dappdynamics.agent.monitors.controller.username
+  password: "" # -Dappdynamics.agent.monitors.controller.password
+  encryptedPassword: "" # -Dappdynamics.agent.monitors.controller.encryptedPassword
+  accountAccessKey: "" # -Dappdynamics.agent.accountAccessKey
+  account: "customer1" # -Dappdynamics.agent.accountName
+  machinePath: "" # -Dappdynamics.machine.agent.hierarchyPath
+  simEnabled: false # -Dappdynamics.sim.enabled
+  applicationName: "" # -Dappdynamics.agent.applicationName
+  tierName: "" # -Dappdynamics.agent.tierName
+  nodeName: "" # -Dappdynamics.agent.nodeName
 
-#TODO: we need some info to describe this section here on in README
-#taskSchedule:
-#  numberOfThreads: 1
-#  taskDelaySeconds: 300
+enableHealthChecks: true # If not set, will be retrieved from "-Dappdynamics.agent.monitors.healthchecks.enable=true". Defaults to true.

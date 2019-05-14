@@ -53,9 +53,6 @@ public class PostgresConnectionConfig {
         props.setProperty(APPLICATION_NAME, builder.applicationName);
         props.setProperty("readOnly", builder.readOnly);
         if (builder.properties != null && builder.properties.size() != 0) {
-            // TODO though using putAll is not recommend for Properties this should be fine imo, since the Map is
-            //  bounded by String, String. lmk
-            // todo this looks fine to me because none of the elements are nullable
             props.putAll(builder.properties);
         }
         return new PostgresConnectionConfig(url, props);

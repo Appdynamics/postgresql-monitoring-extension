@@ -29,8 +29,8 @@ import static com.appdynamics.extensions.postgres.util.Constants.SERVERS;
  */
 public class PostgresConnectionConfigHelperTest {
 
-    @Test(expected = ConnectionConfigException.class)
-    public void whenServerHostIsMissingThenExceptionIsThrown() throws ConnectionConfigException {
+    @Test(expected = RuntimeException.class)
+    public void whenServerHostIsMissingThenExceptionIsThrown() {
         Map<String, ?> conf = YmlReader.readFromFileAsMap(new File("src/test/resources/conf/config_no_host.yml"));
         List<Map<String, ?>> servers = (List<Map<String, ?>>) conf.get(SERVERS);
         PostgresConnectionConfigHelper.getConnectionConfig("database", "server", "password", servers.get(0));

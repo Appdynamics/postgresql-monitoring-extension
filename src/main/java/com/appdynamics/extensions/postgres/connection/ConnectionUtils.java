@@ -35,7 +35,6 @@ public class ConnectionUtils {
     public static Connection getConnection(String driver, String url, Properties props) throws SQLException,
             ClassNotFoundException {
         Class.forName(driver);
-        Connection conn = DriverManager.getConnection(url, props);
-        return conn;
+        return DriverManager.getConnection(url, props);
     }
 }
