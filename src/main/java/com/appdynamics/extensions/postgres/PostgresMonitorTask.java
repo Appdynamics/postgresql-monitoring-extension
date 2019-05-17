@@ -52,10 +52,8 @@ public class PostgresMonitorTask implements AMonitorTaskRunnable {
         this.contextConfiguration = contextConfiguration;
         this.metricWriteHelper = metricWriteHelper;
         this.server = server;
-        this.serverName = serverName; //TODO:  we can get the server name from the server map, I did this so that it
-        // is clear from the constructor call itself that serverName is used
-        this.heart_beat = new AtomicBoolean(); //TODO: new AtomicBoolean(false); @vishaka default constructor will
-        // initialize it to false
+        this.serverName = serverName;
+        this.heart_beat = new AtomicBoolean();
     }
 
     @Override

@@ -48,8 +48,7 @@ public class DatabaseTask implements Runnable {
     private final String metricPrefix;
     private final PostgresConnectionConfig connConfig;
     private final MetricWriteHelper metricWriteHelper;
-    private final AtomicBoolean heart_beat; //todo: initialize to zero @vishaka - why? heart_beat is false when
-    // initialized
+    private final AtomicBoolean heart_beat;
 
     public DatabaseTask(String serverName, String dbName, Map<String, ?> databaseTask, Phaser phaser,
                         PostgresConnectionConfig connConfig, String metricPrefix, MetricWriteHelper metricWriteHelper
@@ -131,8 +130,6 @@ public class DatabaseTask implements Runnable {
         }
         LOGGER.debug("Finished metrics collection for query {}", queryStmt);
         return metrics;
-
-        //TODO: Add connection.close() to avoid memory leaks @vishaka I am using try with resources, connection will be autocolsed
     }
 
     private List<Metric> collectMetricsFromResultSet(Boolean isServerLvlQuery, String name, ResultSet rs,
