@@ -118,7 +118,6 @@ public class DatabaseTask implements Runnable {
                     }
                 }
             } else {
-                //todo: print heartbeat=0 as a metric
                 LOGGER.debug("Connection to database {} server {} is not valid", dbName, serverName);
             }
         } catch (ClassNotFoundException cce) {

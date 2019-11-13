@@ -90,11 +90,6 @@ public class PostgresMonitorTask implements AMonitorTaskRunnable {
                 final String encryptionKey = (String) contextConfiguration.getConfigYml().get(ENCRYPTION_KEY);
                 PostgresConnectionConfig connectionConfig = PostgresConnectionConfigHelper.getConnectionConfig(dbName
                         , serverName, CryptoUtils.getPassword(server, encryptionKey), server);
-                //TODO: can this be re-written as :
-                // TODO: getConnectionConfig(dbName,server); and let getPassword and serverName be extracted in the
-                //  Helper class? @vishaka server won't have encrptionKey at this time I will have to pass encrptionKey
-                //  or add it in server map, I don't see any benefits from doing so can you clarify what difference this
-                //  will make
                 DatabaseTask task = new DatabaseTask(serverName, dbName, databaseTask, phaser, connectionConfig,
                         contextConfiguration.getMetricPrefix(), metricWriteHelper, heart_beat);
                 contextConfiguration.getContext().getExecutorService().execute("Postgres db task - " + dbName, task);
