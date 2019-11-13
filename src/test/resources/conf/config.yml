@@ -1,0 +1,58 @@
+---
+# This will create this metric in all the tiers, under this path.
+metricPrefix: "Custom Metrics|PostgreSQL"
+
+# This will create it in specific Tier aka Component. Replace <COMPONENT_ID>.
+#metricPrefix: "Server|Component:<ComponentID>|Custom Metrics|PostgreSQL"
+
+ApplicationName: "AppDynamicsPSQLExtension"
+
+servers:
+  - displayName: "Local cluster"
+    host: "127.0.0.1"
+    useIpv6: "false"
+    port: "5432"
+    user: "pradeep.nair"
+    password: ""
+    encryptedPassword: ""
+#    optionalConnectionProperties:
+#      - connectTimeout: 100
+#        tcpKeepAlive: true
+    databases:
+      - dbName: "test"
+        queries:
+          # server level stats, run this query under one database for one server. Add where clauses to query to filter databases
+          - name: "Database Stats"
+            serverLvlQuery: "true"
+            queryStmt: "SELECT datname, numbackends, xact_commit, xact_rollback, blks_read, blks_hit, tup_returned,
+                               tup_fetched, tup_inserted, tup_updated, tup_deleted, conflicts, temp_files, temp_bytes,
+                               deadlocks, blk_read_time, blk_write_time, pg_catalog.pg_database_size(datname) AS dbSize
+                        FROM pg_stat_database"
+            columns:
+              - name: "datname"
+                type: "metricPath"
+              - name: "numbackends"
+                type: "metricValue"
+                properties:
+                  alias: "Number of connections"
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+              - name: "dbSize"
+                type: "metricValue"
+                properties:
+                  alias: "Database Size (KB)"
+                  multiplier: 0.0009765625
+                  aggregationType: "OBSERVATION"
+                  timeRollUpType: "AVERAGE"
+                  clusterRollUpType: "INDIVIDUAL"
+
+encryptionKey: ""
+
+# 2 threads for each database. In addition to this 1 thread is required for each  custom query.
+numberOfThreads: 3
+
+#taskSchedule:
+#  numberOfThreads: 1
+#  taskDelaySeconds: 300
+...

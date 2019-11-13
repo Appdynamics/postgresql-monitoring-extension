@@ -1,0 +1,36 @@
+---
+columns:
+  - name: "datname"
+    type: "metricPath"
+  - name: "numbackends"
+    type: "metricValue"
+    properties:
+      alias: "Number of connections"
+      aggregationType: "OBSERVATION"
+      timeRollUpType: "AVERAGE"
+      clusterRollUpType: "INDIVIDUAL"
+  - name: "xact_commit"
+    type: "metricValue"
+    properties:
+      alias: "Transactions Committed"
+      delta: "true"
+      aggregationType: "OBSERVATION"
+      timeRollUpType: "AVERAGE"
+      clusterRollUpType: "INDIVIDUAL"
+  - name: "xact_rollback"
+    type: "metricValue"
+    properties:
+      alias: "Transactions Rollbacked"
+      delta: "true"
+      aggregationType: "OBSERVATION"
+      timeRollUpType: "AVERAGE"
+      clusterRollUpType: "INDIVIDUAL"
+  - name: "blks_read"
+    type: "metricValue"
+    properties:
+      alias: "Blocks Read"
+      delta: "true"
+      aggregationType: "OBSERVATION"
+      timeRollUpType: "AVERAGE"
+      clusterRollUpType: "INDIVIDUAL"
+...

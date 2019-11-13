@@ -1,0 +1,30 @@
+---
+# This will create this metric in all the tiers, under this path.
+metricPrefix: "Custom Metrics|PostgreSQL"
+
+# This will create it in specific Tier aka Component. Replace <COMPONENT_ID>.
+#metricPrefix: "Server|Component:<ComponentID>|Custom Metrics|PostgreSQL"
+
+ApplicationName: "AppDynamicsPSQLExtension"
+
+servers:
+  - displayName: "Local cluster"
+    host: "127.0.0.1"
+    useIpv6: "false"
+    port: "5432"
+    user: "pradeep.nair"
+    password: ""
+    encryptedPassword: ""
+#    optionalConnectionProperties:
+#      - connectTimeout: 100
+#        tcpKeepAlive: true
+
+encryptionKey: ""
+
+# 2 threads for each database. In addition to this 1 thread is required for each  custom query.
+numberOfThreads: 3
+
+#taskSchedule:
+#  numberOfThreads: 1
+#  taskDelaySeconds: 300
+...

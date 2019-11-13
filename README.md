@@ -1,127 +1,178 @@
 # AppDynamics PostgreSQL Database - Monitoring Extension
-
-This extension works only with the standalone machine agent.
-
-##Use Case
+## Use Case
 PostgreSQL is an open source object-relational database system.
 
-The PostgreSQL monitoring extension captures metrics from a PostgreSQL database and displays them in the AppDynamics Metric Browser. 
+The PostgreSQL monitoring extension captures metrics from a PostgreSQL database and displays them in the AppDynamics Metric Browser.
+## Prerequisites
+Before the extension is installed, the prerequisites mentioned [here](https://community.appdynamics.com/t5/Knowledge-Base/Extensions-Prerequisites-Guide/ta-p/35213) need to be met. Please do not proceed with the extension installation if the specified prerequisites are not met.
+## Installation
+1.  Unzip the contents of "PostgreSQLMonitor.zip" as "PostgreSQLMonitor" and copy the "PostgreSQLMonitor" directory to `<MachineAgentHome>/monitors/`
+2. Configure the extension by referring to the below section.
+3. Configure the path to the config.yaml file by editing the task-argments in the monitor.xml file.
+    ```
+        <task-arguments>
+            <argument name="config-file" is-required="true" default-value="monitors/PostgreSQLMonitor/config.yml" />
+        </task-arguments>
+    ```
+4. Restart the machine agent.
+## Configuration
+Note : Please make sure not to use tab (\t) while editing yaml files. You can validate the yaml file using a [yaml validator](http://yamllint.com)
 
-Metrics include:
-* Transaction commits and rollbacks
-* Blocks hit and read
-* Tuples fetched and returned
-* Tuples inserted/updated/deleted
+Configure the extension by editing the config.yml file in `<MachineAgentHome>/monitors/PostgreSQLMonitor/`. The metricPrefix of the extension has to be configured as specified [here](https://community.appdynamics.com/t5/Knowledge-Base/How-do-I-troubleshoot-missing-custom-metrics-or-extensions/ta-p/28695#Configuring%20an%20Extension). Please make sure that the right metricPrefix is chosen based on your machine agent deployment, otherwise this could lead to metrics not being visible in the controller.
+### Configuring the servers and database
+1. Configure the PostgreSQL clusters/servers properties by specifying the displayName(required), host(required), port(required), user(required), password (only if authentication enabled), encryptedPassword(only if password encryption required) under `servers`. Also specify the databases that have to be monitored. You can specify multiple servers in the same config.yml file.
+    ```
+    servers:
+      - displayName: "Local cluster"
+        host: "127.0.0.1"
+        useIpv6: "false"
+        port: "5432"
+        user: ""
+        password: ""
+        encryptedPassword: ""
+    #    optionalConnectionProperties:
+    #      connectTimeout: 100
+    #      tcpKeepAlive: true
+        databases:
+          ...
+      - displayName: "Local cluster"
+        host: "::1"
+        useIpv6: "true"
+        port: "5432"
+        user: ""
+        password: ""
+        encryptedPassword: ""
+        databases:
+          ...
+    ``` 
+    When using ipv6 address set `useIpv6: "false"`. Additional connection properties can be set using `optionalConnectionProperties`, you can refer [here](https://jdbc.postgresql.org/documentation/head/connect.html) for all connection parameters.
+2. Configure the databases under each server, atleast on database is required under one server to configure some queries and fetch metrics. Configure the database by providing dbName and configuring queries as explained in the next section. You can configure multiple databases.
+    ```
+    databases:
+      - dbName: "test"
+        queries:
+          ...
+    ```
+### Configuring queries
+Only queries that start with SELECT are allowed.
+The extension supports getting values from multiple columns at once but it can only pull the metrics from the latest value from the row returned.
 
-##Installation
+The name of the metric displayed on the Metric Browser will be the "name" value that is specified in columns.
 
-**Note**: Configure the AppDynamics Machine Agent prior to installing this monitoring extension.
-
-0. Run mvn clean install. Extract the PostgreSQLMonitor.zip file found in 'target' into the \<machine agent home\>/monitors directory.
-
+__queries__ : You can add multiple queries under this field, each query configured will consist of the following 
+1. __name__ : The name you would like to give to the metrics produced by this query.
+2. __serverLvlQuery__ : Set this to true only if the query returns stats for the databases under the current server
+3. __queryStmt__ : This will be your SQL Query that will be used to query the database.
+4. __columns__ : Under this field you will have to list all the columns that you are trying to get values from.
+    * __name__ : The name of the column you would like to see on the metric browser.
+    * __type__ : This value will define if the value returned from the column will be used for the metric path or if it is going to be the value of the metric.
+       * __metricPath__ : If you select this, this value will be added to the metric path for the metric.
+       * __metricValue__ : If you select this, then the value returned will become your metric value that will correspond to the name you specified above.
+       
+Example, Consider the below query for server `Local Cluster`
 ```
-$ cd <machine agent home>/monitors/
-
-$ unzip PostgreSQLMonitor.zip
+databases:
+  - dbName: "test"
+    queries: 
+    # Add where clauses to query to filter databases
+      - name: "Database Stats"
+        serverLvlQuery: "true"
+        queryStmt: "SELECT datname, numbackends
+                    FROM pg_stat_database"
+        # the columns are the metrics to be extracted
+        columns:
+          - name: "datname"
+            type: "metricPath"
+          - name: "numbackends"
+            type: "metricValue"
+            properties:
+              alias: "Number of connections"
+              aggregationType: "OBSERVATION"
+              timeRollUpType: "AVERAGE"
+              clusterRollUpType: "INDIVIDUAL"
 ```
-2. Edit the config.yml and provide details of postgres database to connect to and fetch metrics
-3. Edit metrics.xml and update the details
-4. Restart the Machine Agent
-5. Look for the metrics in the AppDynamics Metric Browser.  
+The above query will return 1 metric, with metric path -
+`Custom Metrics|Local Cluster|Database Stats|<datname>|Number of connections`. Since the above query has `serverLvlQuery: true` __dbName__ won't be a part of the metric path.
 
-
-## Sample config.yml
-
+Consider the below query for server `Local Cluster`
 ```
-#Define postgress server cofiguration
-pgServers:
-   - displayName: "Local Postgres"
-     host: "localhost"
-     port: 5432
-     user: "postgres"
-
-     #Provide password or encryptedPassword and encryptionKey. See the documentation to find about password encryption.
-     password:
-     encryptedPassword: "/UNgClxtOb55gAln9NAzrA=="
-     encryptionKey: "welcome"
-     #The database that the PgStat Activity metrics should be collected from
-     targetDatabase: "test"
-
-# number of concurrent tasks
-numberOfThreads: 1
-
-taskSchedule:
-    numberOfThreads: 1
-    taskDelaySeconds: 300
-
-metricPrefix: "Custom Metrics|Postgres Server|"
-
+databases:
+  - dbName: "test"
+    queries:
+      - name: "Table Stats"
+        serverLvlQuery: "false"
+        # add where clause to the query to filter tables
+        queryStmt: "SELECT relname, seq_scan, seq_tup_read
+                    FROM pg_stat_user_tables where relname = 'myTable'"
+        columns:
+          - name: "relname"
+            type: "metricPath"
+          - name: "seq_scan"
+            type: "metricValue"
+            properties:
+              alias: "Sequential Scans"
+              delta: "true"
+              aggregationType: "OBSERVATION"
+              timeRollUpType: "AVERAGE"
+              clusterRollUpType: "INDIVIDUAL"
+          - name: "seq_tup_read"
+            type: "metricValue"
+            properties:
+              alias: "Tuples fetched by Sequential Scans"
+              delta: "true"
+              aggregationType: "OBSERVATION"
+              timeRollUpType: "AVERAGE"
+              clusterRollUpType: "INDIVIDUAL"
 ```
+Assume that this query returns -
 
-##Sample metrics.xml
+|relname|seq_scan|seq_tup_read|
+|---|---|---|
+|myTable|10|200|
 
+The above query will return 2 metrics-
 ```
-<stats>
-    <!-- name should match the displayName of pgServers in config.yml -->
-    <stat name="Local Postgres" metric-type="OBS.CUR.COL">
-        <metric columnName="numbackends" label="Number of backends"/>
-        <metric columnName="xact_commit" label="Committed Transactions"/>
-        <metric columnName="xact_rollback" label="Rolled Back Transactions"/>
-        <metric columnName="blks_read" label="Disk Blocks Read"/>
-        <metric columnName="blks_hit" label="Disk Blocks Hit"/>
-        <metric columnName="tup_returned" label="Rows Returned"/>
-        <metric columnName="tup_fetched" label="Rows Fetched"/>
-        <metric columnName="tup_inserted" label="Rows Inserted"/>
-        <metric columnName="tup_updated" label="Rows Updated"/>
-        <metric columnName="tup_deleted" label="Rows Deleted"/>
-    </stat>
-</stats>
+Custom Metrics|Local Cluster|test|Table Stats|relname|Sequential Scans = 10
+Custom Metrics|Local Cluster|test|Table Stats|relname|Tuples fetched by Sequential Scans = 200
 ```
+### numberOfThreads
+Use the following formula for calculating `numberOfThreads`
+```
+numberOfThreads = for each server (1 + number_of(databases)). For example if you have 1 server and 2 databases then numberOfThreads = 1 + 2 = 3
+```
+### metricPathReplacements
+Please visit [this](https://community.appdynamics.com/t5/Knowledge-Base/Metric-Path-CharSequence-Replacements-in-Extensions/ta-p/35412) page to get detailed instructions on configuring Metric Path Character sequence replacements in Extensions.
+### customDashboard
+Please visit [this](https://community.appdynamics.com/t5/Knowledge-Base/Uploading-Dashboards-Automatically-with-AppDynamics-Extensions/ta-p/35408) page to get detailed instructions on automatic dashboard upload with extension.
+### enableHealthChecks
+Please visit [here](https://community.appdynamics.com/t5/Knowledge-Base/Extension-HealthChecks/ta-p/35409) page to get detailed instructions on 
+## Credentials Encryption
+Please visit [this](https://community.appdynamics.com/t5/Knowledge-Base/How-to-use-Password-Encryption-with-Extensions/ta-p/29397) page to get detailed instructions on password encryption. The steps in this document will guide you through the whole process.
+## Extensions Workbench
+Workbench is an inbuilt feature provided with each extension in order to assist you to fine tune the extension setup before you actually deploy it on the controller. Please review the following [document](https://community.appdynamics.com/t5/Knowledge-Base/How-to-use-the-Extensions-WorkBench/ta-p/30130) for how to use the Extensions WorkBench
+## Troubleshooting
+Please follow the steps listed in the [extensions troubleshooting document](https://community.appdynamics.com/t5/Knowledge-Base/How-to-troubleshoot-missing-custom-metrics-or-extensions-metrics/ta-p/28695) in order to troubleshoot your issue. These are a set of common issues that customers might have faced during the installation of the extension. If these don't solve your issue, please follow the last step on the troubleshooting-document to contact the support team.
+## Support Tickets
+If after going through the Troubleshooting Document you have not been able to get your extension working, please file a ticket and add the following information.
 
-Note: For each database defined in pgServers of config.yml, you have to define one \<stat\> element in metrics.xml
+Please provide us with the following for us to assist you better:
+1. Config.yml & monitor.xml (`<MachineAgentHome>/monitors/PostgreSQLMonitor`)
+2. Controller-info.xml (`<MachineAgentHome>/conf/controller-info.xml`)
+3. Enable Machine Agent `DEBUG` logging by changing the level values of the following logger elements from `INFO` to `DEBUG` in `<MachineAgent>/conf/logging/log4j.xml`:
+    ```
+    <logger name="com.singularity">
+    <logger name="com.appdynamics">
+    ```
+4. After letting the Machine Agent run for 10-15 minutes, attach the complete `<MachineAgentHome>/logs/` directory.
 
-
-##Credentials Encryption
-
-To supply encrypted password in config.yml, follow the steps below:
-
-1. Download the util jar to encrypt the password from [here](https://github.com/Appdynamics/maven-repo/blob/master/releases/com/appdynamics/appd-exts-commons/1.1.2/appd-exts-commons-1.1.2.jar).
-2. Run command:
-
-	~~~   
-	java -cp appd-exts-commons-1.1.2.jar com.appdynamics.extensions.crypto.Encryptor EncryptionKey CredentialToEncrypt
-	
-	For example: 
-	java -cp "appd-exts-commons-1.1.2.jar" com.appdynamics.extensions.crypto.Encryptor test myPassword
-
-	~~~
-3. In the config.yaml, provide the EncryptionKey used in encryptionKey, as well as the resulting encrypted password in encryptedPassword.
-
-
-##Metrics
-
-| Variable | Description |
-| --- | --- |
-| numbackends | Number of Backends |
-| xact\_commit | Transaction Commits |
-| xact\_rollback | Transaction Rollback |
-| blks\_read | Blocks Read |
-| blks\_hit | Blocks Hit |
-| tup\_returned | Tuples Returned |
-| tup\_fetched | Tuples Fetched |
-| tup\_inserted | Tuples Inserted |
-| tup\_updated | Tuples Updated |
-| tup\_deleted | Tuples Deleted |
-
-
-##Contributing
-
+For any support related questions, you can also contact [help@appdynamics.com](mailto:help@appdynamics.com).
+## Contributing
 Always feel free to fork and contribute any changes directly via [GitHub](https://github.com/Appdynamics/postgresql-monitoring-extension).
-
-##Community
-
-Find out more in the [AppSphere](http://appsphere.appdynamics.com/t5/Extensions/PostgresSQL-Database-Monitoring-Extension/idi-p/837) community.
-
-##Support
-
-For any questions or feature request, please contact [AppDynamics Center of Excellence](mailto:help@appdynamics.com).
+## Version
+|Name|Version|
+|---|---|
+|Extension Version|3.0.0|
+|Controller Compatibility|4.3.x or Later|
+|Postgres Version Support|9.4 or later|
+|Last Update|05/13/2019|
+|Changes list|[ChangeLog](https://github.com/Appdynamics/postgresql-monitoring-extension/blob/master/CHANGES.md)|
