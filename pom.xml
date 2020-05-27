@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.appdynamics.extensions</groupId>
     <artifactId>postgresql-monitoring-extension</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.1</version>
     <name>PostgreSQL Monitor</name>
     <description>Monitors PostgreSQL</description>
 
@@ -41,7 +41,7 @@
         <dependency>
             <groupId>com.appdynamics</groupId>
             <artifactId>appd-exts-commons</artifactId>
-            <version>2.2.1</version>
+            <version>2.2.3</version>
         </dependency>
         <!--Added to use YAML mapper for jackson-->
         <dependency>
@@ -58,12 +58,6 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>42.2.5</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.21</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
