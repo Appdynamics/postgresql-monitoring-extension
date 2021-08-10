@@ -1,3 +1,6 @@
+### Version 3.0.2
+* Updated extensions-commons framework to 2.2.4
+
 ### Version 3.0.1
 * Updated extensions-commons framework to 2.2.3
 

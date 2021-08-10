@@ -171,8 +171,8 @@ Always feel free to fork and contribute any changes directly via [GitHub](https:
 ## Version
 |Name|Version|
 |---|---|
-|Extension Version|3.0.1|
-|Controller Compatibility|4.3.x or Later|
+|Extension Version|3.0.2|
+|Controller Compatibility|4.5.x or Later|
 |Postgres Version Support|9.4 or later|
-|Last Update|05/27/2020|
+|Last Update|10/08/2021|
 |Changes list|[ChangeLog](https://github.com/Appdynamics/postgresql-monitoring-extension/blob/master/CHANGES.md)|
