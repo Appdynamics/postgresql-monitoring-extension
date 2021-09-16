@@ -6,17 +6,21 @@ The PostgreSQL monitoring extension captures metrics from a PostgreSQL database 
 ## Prerequisites
 Before the extension is installed, the prerequisites mentioned [here](https://community.appdynamics.com/t5/Knowledge-Base/Extensions-Prerequisites-Guide/ta-p/35213) need to be met. Please do not proceed with the extension installation if the specified prerequisites are not met.
 ## Installation
-1.  Unzip the contents of "PostgreSQLMonitor.zip" as "PostgreSQLMonitor" and copy the "PostgreSQLMonitor" directory to `<MachineAgentHome>/monitors/`
-2. Configure the extension by referring to the below section.
-3. Configure the path to the config.yaml file by editing the task-argments in the monitor.xml file.
+1. Run 'mvn clean install' from "PostgreSQLMonitorRepo"
+1. Unzip the contents of "PostgreSQLMonitor-VERSION.zip" from `target` directory as "PostgreSQLMonitor" and copy the "PostgreSQLMonitor" directory to `<MachineAgentHome>/monitors/`
+2. Configure the extension by referring to the Configuration section.
+3. Configure the path to the config.yml file by editing the task-arguments in the monitor.xml file.
     ```
         <task-arguments>
             <argument name="config-file" is-required="true" default-value="monitors/PostgreSQLMonitor/config.yml" />
         </task-arguments>
     ```
 4. Restart the machine agent.
+
+Please place the extension in the **"monitors"** directory of your **Machine Agent** installation directory. Do not place the extension in the **"extensions"** directory of your **Machine Agent** installation directory.
+
 ## Configuration
-Note : Please make sure not to use tab (\t) while editing yaml files. You can validate the yaml file using a [yaml validator](http://yamllint.com)
+Note : Please make sure not to use tab (\t) while editing yaml files. You can validate the yaml file using a [yaml validator](https://jsonformatter.org/yaml-validator)
 
 Configure the extension by editing the config.yml file in `<MachineAgentHome>/monitors/PostgreSQLMonitor/`. The metricPrefix of the extension has to be configured as specified [here](https://community.appdynamics.com/t5/Knowledge-Base/How-do-I-troubleshoot-missing-custom-metrics-or-extensions/ta-p/28695#Configuring%20an%20Extension). Please make sure that the right metricPrefix is chosen based on your machine agent deployment, otherwise this could lead to metrics not being visible in the controller.
 ### Configuring the servers and database
@@ -142,10 +146,6 @@ numberOfThreads = for each server (1 + number_of(databases)). For example if you
 ```
 ### metricPathReplacements
 Please visit [this](https://community.appdynamics.com/t5/Knowledge-Base/Metric-Path-CharSequence-Replacements-in-Extensions/ta-p/35412) page to get detailed instructions on configuring Metric Path Character sequence replacements in Extensions.
-### customDashboard
-Please visit [this](https://community.appdynamics.com/t5/Knowledge-Base/Uploading-Dashboards-Automatically-with-AppDynamics-Extensions/ta-p/35408) page to get detailed instructions on automatic dashboard upload with extension.
-### enableHealthChecks
-Please visit [here](https://community.appdynamics.com/t5/Knowledge-Base/Extension-HealthChecks/ta-p/35409) page to get detailed instructions on 
 ## Credentials Encryption
 Please visit [this](https://community.appdynamics.com/t5/Knowledge-Base/How-to-use-Password-Encryption-with-Extensions/ta-p/29397) page to get detailed instructions on password encryption. The steps in this document will guide you through the whole process.
 ## Extensions Workbench
@@ -159,8 +159,8 @@ Always feel free to fork and contribute any changes directly via [GitHub](https:
 |Name|Version|
 |---|---|
 |Extension Version|3.0.2|
-|Controller Compatibility|4.5 or Later|
-|Agent Compatibility|4.5.13 or Later|
 |Postgres Version Support|9.4 or later|
 |Last Update|10/08/2021|
 |Changes list|[ChangeLog](https://github.com/Appdynamics/postgresql-monitoring-extension/blob/master/CHANGES.md)|
+
+**Note**: While extensions are maintained and supported by customers under the open-source licensing model, they interact with agents and Controllers that are subject to [AppDynamics’ maintenance and support policy](https://docs.appdynamics.com/latest/en/product-and-release-announcements/maintenance-support-for-software-versions). Some extensions have been tested with AppDynamics 4.5.13+ artifacts, but you are strongly recommended against using versions that are no longer supported.
